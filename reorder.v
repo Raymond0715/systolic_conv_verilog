@@ -1,38 +1,38 @@
 // --------------------------------------------------------------------------------------
-// Company: 
-// Engineer: 
-// 
+// Company:
+// Engineer:
+//
 // Create Date: 2021/11/15
-// Design Name: 
+// Design Name:
 // Module Name: reorder
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
+// Project Name:
+// Target Devices:
+// Tool Versions:
+// Description:
+//
+// Dependencies:
+//
 // Revision:
 // Revision 0.01 - File Created
-// Additional Comments: 
+// Additional Comments:
 //      Mode0: full weight  Mode1: full act
 //
 //      In mode0, each sum_din cycle as :
-//     
+//
 //      line 1 to 56
 //          ch_out 1-64, 65-128, 129-192, 193-256
 //              pix 1-56;
-// 
+//
 //      So this module will regard ecah 8 ch_out as a group, 
 //      and round-robin these channles until reaching the end of current line.
 //      and directly write data to DDR;
 //
 //      In mode1, each sum_din cycle as :
-//      
+//
 //      total 1 to 4
 //          line 1 to 56
-//              ch_out 1-64, 65-1//              ch_out 1-64, 65-128 (total==2: ch_out 129-192, 193-256��)
-//                  pix 1-56;  
+//              ch_out 1-64, 65-1 // ch_out 1-64, 65-128 (total==2: ch_out 129-192, 193-256)
+//                  pix 1-56;
 //
 //      So this module will also regard each 8 ch_out as a group, 
 //      and round-robin these channles until reaching the end of current line.

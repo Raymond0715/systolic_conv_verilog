@@ -3,194 +3,210 @@
 `timescale 1ns/1ps
 
 module Top_PL # (
-  `ifdef SIM
-    parameter CONV_NUM = 8//this should be 64 on actual chip,change it to 1,2,3.. to accelarate simulation while debug.
-  `else
-    parameter CONV_NUM = 64
-  `endif
+	`ifdef SIM
+		parameter CONV_NUM = 8
+		//this should be 64 on actual chip,change it to 1,2,3.. to accelarate simulation while debug.
+	`else
+		parameter CONV_NUM = 64
+	`endif
 )(
-    input clk,
-    input rst_n,
+	input clk,
+	input rst_n,
 
-    // config
-    input               s_axis_config_tvalid    ,
-    output              s_axis_config_tready    ,
-    input       [31:0]  s_axis_config_tdata     ,
+	// config
+	input               s_axis_config_tvalid    ,
+	output              s_axis_config_tready    ,
+	input       [31:0]  s_axis_config_tdata     ,
 
-    // act in
-    input               s_axis_act_tvalid,
-    output              s_axis_act_tready,
-    input [31:0]        s_axis_act_tdata,
-    input               s_axis_act_tlast,
-    input [3:0]         s_axis_act_tkeep,
+	// act in
+	input               s_axis_act_tvalid,
+	output              s_axis_act_tready,
+	input [31:0]        s_axis_act_tdata,
+	input               s_axis_act_tlast,
+	input [3:0]         s_axis_act_tkeep,
 
-    // weight in
-    input               s_axis_weight_tvalid,
-    output              s_axis_weight_tready,
-    input [31:0]        s_axis_weight_tdata,
-    input               s_axis_weight_tlast,
-    input [3:0]         s_axis_weight_tkeep,
+	// weight in
+	input               s_axis_weight_tvalid,
+	output              s_axis_weight_tready,
+	input [31:0]        s_axis_weight_tdata,
+	input               s_axis_weight_tlast,
+	input [3:0]         s_axis_weight_tkeep,
 
-    /*****Datamover1*****/
-    //m_axis_s2mm
-    output [127:0]      m_axis_s2mm_tdata,
-    output [15:0]       m_axis_s2mm_tkeep ,
-    output              m_axis_s2mm_tlast ,
-    input               m_axis_s2mm_tready,
-    output              m_axis_s2mm_tvalid,
+	/*****Datamover1*****/
+	//m_axis_s2mm
+	output [127:0]      m_axis_s2mm_tdata,
+	output [15:0]       m_axis_s2mm_tkeep ,
+	output              m_axis_s2mm_tlast ,
+	input               m_axis_s2mm_tready,
+	output              m_axis_s2mm_tvalid,
 
-    //s_axis_mm2s
-    input       [127:0] s_axis_mm2s_tdata,
-    input       [15:0]  s_axis_mm2s_tkeep,
-    input               s_axis_mm2s_tlast,
-    output              s_axis_mm2s_tready,
-    input               s_axis_mm2s_tvalid,
+	//s_axis_mm2s
+	input       [127:0] s_axis_mm2s_tdata,
+	input       [15:0]  s_axis_mm2s_tkeep,
+	input               s_axis_mm2s_tlast,
+	output              s_axis_mm2s_tready,
+	input               s_axis_mm2s_tvalid,
 
-    //m_axis_s2mm_cmd
-    input               m_axis_s2mm_cmd_tready,
-    output              m_axis_s2mm_cmd_tvalid,
-    output      [71:0]  m_axis_s2mm_cmd_tdata ,
+	//m_axis_s2mm_cmd
+	input               m_axis_s2mm_cmd_tready,
+	output              m_axis_s2mm_cmd_tvalid,
+	output      [71:0]  m_axis_s2mm_cmd_tdata ,
 
-    //m_axis_mm2s_cmd
-    input               m_axis_mm2s_cmd_tready,
-    output              m_axis_mm2s_cmd_tvalid,
-    output      [71:0]  m_axis_mm2s_cmd_tdata ,
+	//m_axis_mm2s_cmd
+	input               m_axis_mm2s_cmd_tready,
+	output              m_axis_mm2s_cmd_tvalid,
+	output      [71:0]  m_axis_mm2s_cmd_tdata ,
 
-    //s_axis_mm2s_sts
-    output              s_axis_mm2s_sts_tready,
-    input               s_axis_mm2s_sts_tvalid,
-    input  [7 :0]       s_axis_mm2s_sts_tdata ,
-    input               s_axis_mm2s_sts_tlast ,
-    input               s_axis_mm2s_sts_tkeep ,
+	//s_axis_mm2s_sts
+	output              s_axis_mm2s_sts_tready,
+	input               s_axis_mm2s_sts_tvalid,
+	input  [7 :0]       s_axis_mm2s_sts_tdata ,
+	input               s_axis_mm2s_sts_tlast ,
+	input               s_axis_mm2s_sts_tkeep ,
 
-    //s_axis_s2mm_sts
-    output              s_axis_s2mm_sts_tready ,
-    input               s_axis_s2mm_sts_tvalid,
-    input  [7 :0]       s_axis_s2mm_sts_tdata ,
-    input               s_axis_s2mm_sts_tlast ,
-    input               s_axis_s2mm_sts_tkeep ,
+	//s_axis_s2mm_sts
+	output              s_axis_s2mm_sts_tready ,
+	input               s_axis_s2mm_sts_tvalid,
+	input  [7 :0]       s_axis_s2mm_sts_tdata ,
+	input               s_axis_s2mm_sts_tlast ,
+	input               s_axis_s2mm_sts_tkeep ,
 
-    /*****Datamover4*****/
-    //m_axis_s2mm
-    output [127:0]      m_axis_weight_s2mm_tdata,
-    output [15:0]       m_axis_weight_s2mm_tkeep ,
-    output              m_axis_weight_s2mm_tlast ,
-    input               m_axis_weight_s2mm_tready,
-    output              m_axis_weight_s2mm_tvalid,
+	/*****Datamover4*****/
+	//m_axis_s2mm
+	output [127:0]      m_axis_weight_s2mm_tdata,
+	output [15:0]       m_axis_weight_s2mm_tkeep ,
+	output              m_axis_weight_s2mm_tlast ,
+	input               m_axis_weight_s2mm_tready,
+	output              m_axis_weight_s2mm_tvalid,
 
-    //s_axis_mm2s
-    input       [127:0] s_axis_weight_mm2s_tdata,
-    input       [15:0]  s_axis_weight_mm2s_tkeep,
-    input               s_axis_weight_mm2s_tlast,
-    output              s_axis_weight_mm2s_tready,
-    input               s_axis_weight_mm2s_tvalid,
+	//s_axis_mm2s
+	input       [127:0] s_axis_weight_mm2s_tdata,
+	input       [15:0]  s_axis_weight_mm2s_tkeep,
+	input               s_axis_weight_mm2s_tlast,
+	output              s_axis_weight_mm2s_tready,
+	input               s_axis_weight_mm2s_tvalid,
 
-    //m_axis_s2mm_cmd
-    input               m_axis_weight_s2mm_cmd_tready,
-    output              m_axis_weight_s2mm_cmd_tvalid,
-    output      [71:0]  m_axis_weight_s2mm_cmd_tdata ,
+	//m_axis_s2mm_cmd
+	input               m_axis_weight_s2mm_cmd_tready,
+	output              m_axis_weight_s2mm_cmd_tvalid,
+	output      [71:0]  m_axis_weight_s2mm_cmd_tdata ,
 
-    //m_axis_mm2s_cmd
-    input               m_axis_weight_mm2s_cmd_tready,
-    output              m_axis_weight_mm2s_cmd_tvalid,
-    output      [71:0]  m_axis_weight_mm2s_cmd_tdata ,
+	//m_axis_mm2s_cmd
+	input               m_axis_weight_mm2s_cmd_tready,
+	output              m_axis_weight_mm2s_cmd_tvalid,
+	output      [71:0]  m_axis_weight_mm2s_cmd_tdata ,
 
-    //s_axis_mm2s_sts
-    output              s_axis_weight_mm2s_sts_tready,
-    input               s_axis_weight_mm2s_sts_tvalid,
-    input  [7 :0]       s_axis_weight_mm2s_sts_tdata ,
-    input               s_axis_weight_mm2s_sts_tlast ,
-    input               s_axis_weight_mm2s_sts_tkeep ,
+	//s_axis_mm2s_sts
+	output              s_axis_weight_mm2s_sts_tready,
+	input               s_axis_weight_mm2s_sts_tvalid,
+	input  [7 :0]       s_axis_weight_mm2s_sts_tdata ,
+	input               s_axis_weight_mm2s_sts_tlast ,
+	input               s_axis_weight_mm2s_sts_tkeep ,
 
-    //s_axis_s2mm_sts
-    output              s_axis_weight_s2mm_sts_tready ,
-    input               s_axis_weight_s2mm_sts_tvalid,
-    input  [7 :0]       s_axis_weight_s2mm_sts_tdata ,
-    input               s_axis_weight_s2mm_sts_tlast ,
-    input               s_axis_weight_s2mm_sts_tkeep ,
+	//s_axis_s2mm_sts
+	output              s_axis_weight_s2mm_sts_tready ,
+	input               s_axis_weight_s2mm_sts_tvalid,
+	input  [7 :0]       s_axis_weight_s2mm_sts_tdata ,
+	input               s_axis_weight_s2mm_sts_tlast ,
+	input               s_axis_weight_s2mm_sts_tkeep ,
 
-    /*****Datamover2*****/
-    //m_axis_s2mm
-    output [31:0]       m_axis_biass2mm_tdata,
-    output [3:0]        m_axis_biass2mm_tkeep ,
-    output              m_axis_biass2mm_tlast ,
-    input               m_axis_biass2mm_tready,
-    output              m_axis_biass2mm_tvalid,
+	/*****Datamover2*****/
+	//m_axis_s2mm
+	output [31:0]       m_axis_biass2mm_tdata,
+	output [3:0]        m_axis_biass2mm_tkeep ,
+	output              m_axis_biass2mm_tlast ,
+	input               m_axis_biass2mm_tready,
+	output              m_axis_biass2mm_tvalid,
 
-    //s_axis_mm2s
-    input       [31:0]  s_axis_biasmm2s_tdata,
-    input       [3:0]   s_axis_biasmm2s_tkeep,
-    input               s_axis_biasmm2s_tlast,
-    output              s_axis_biasmm2s_tready,
-    input               s_axis_biasmm2s_tvalid,
+	//s_axis_mm2s
+	input       [31:0]  s_axis_biasmm2s_tdata,
+	input       [3:0]   s_axis_biasmm2s_tkeep,
+	input               s_axis_biasmm2s_tlast,
+	output              s_axis_biasmm2s_tready,
+	input               s_axis_biasmm2s_tvalid,
 
-    //m_axis_s2mm_cmd
-    input               m_axis_biass2mm_cmd_tready,
-    output              m_axis_biass2mm_cmd_tvalid,
-    output      [71:0]  m_axis_biass2mm_cmd_tdata ,
+	//m_axis_s2mm_cmd
+	input               m_axis_biass2mm_cmd_tready,
+	output              m_axis_biass2mm_cmd_tvalid,
+	output      [71:0]  m_axis_biass2mm_cmd_tdata ,
 
-    //m_axis_mm2s_cmd
-    input               m_axis_biasmm2s_cmd_tready,
-    output              m_axis_biasmm2s_cmd_tvalid,
-    output      [71:0]  m_axis_biasmm2s_cmd_tdata ,
+	//m_axis_mm2s_cmd
+	input               m_axis_biasmm2s_cmd_tready,
+	output              m_axis_biasmm2s_cmd_tvalid,
+	output      [71:0]  m_axis_biasmm2s_cmd_tdata ,
 
-    //s_axis_mm2s_sts
-    output              s_axis_biasmm2s_sts_tready,
-    input               s_axis_biasmm2s_sts_tvalid,
-    input  [7 :0]       s_axis_biasmm2s_sts_tdata ,
-    input               s_axis_biasmm2s_sts_tlast ,
-    input               s_axis_biasmm2s_sts_tkeep ,
+	//s_axis_mm2s_sts
+	output              s_axis_biasmm2s_sts_tready,
+	input               s_axis_biasmm2s_sts_tvalid,
+	input  [7 :0]       s_axis_biasmm2s_sts_tdata ,
+	input               s_axis_biasmm2s_sts_tlast ,
+	input               s_axis_biasmm2s_sts_tkeep ,
 
-    //s_axis_s2mm_sts
-    output              s_axis_biass2mm_sts_tready ,
-    input               s_axis_biass2mm_sts_tvalid,
-    input  [7 :0]       s_axis_biass2mm_sts_tdata ,
-    input               s_axis_biass2mm_sts_tlast ,
-    input               s_axis_biass2mm_sts_tkeep ,
+	//s_axis_s2mm_sts
+	output              s_axis_biass2mm_sts_tready ,
+	input               s_axis_biass2mm_sts_tvalid,
+	input  [7 :0]       s_axis_biass2mm_sts_tdata ,
+	input               s_axis_biass2mm_sts_tlast ,
+	input               s_axis_biass2mm_sts_tkeep ,
 
-    /*****Datamover3*****/
-    //m_axis_s2mm
-    output [127:0]      m_axis_wrs2mm_tdata,
-    output [15:0]       m_axis_wrs2mm_tkeep ,
-    output              m_axis_wrs2mm_tlast ,
-    input               m_axis_wrs2mm_tready,
-    output              m_axis_wrs2mm_tvalid,
+	/*****Datamover3*****/
+	//m_axis_s2mm
+	output [127:0]      m_axis_wrs2mm_tdata,
+	output [15:0]       m_axis_wrs2mm_tkeep ,
+	output              m_axis_wrs2mm_tlast ,
+	input               m_axis_wrs2mm_tready,
+	output              m_axis_wrs2mm_tvalid,
 
-    //m_axis_s2mm_cmd
-    input               m_axis_wrs2mm_cmd_tready,
-    output              m_axis_wrs2mm_cmd_tvalid,
-    output      [71:0]  m_axis_wrs2mm_cmd_tdata ,
+	//m_axis_s2mm_cmd
+	input               m_axis_wrs2mm_cmd_tready,
+	output              m_axis_wrs2mm_cmd_tvalid,
+	output      [71:0]  m_axis_wrs2mm_cmd_tdata ,
 
-    //s_axis_s2mm_sts
-    output              s_axis_wrs2mm_sts_tready ,
-    input               s_axis_wrs2mm_sts_tvalid,
-    input  [7 :0]       s_axis_wrs2mm_sts_tdata ,
-    input               s_axis_wrs2mm_sts_tlast ,
-    input               s_axis_wrs2mm_sts_tkeep ,
+	//s_axis_s2mm_sts
+	output              s_axis_wrs2mm_sts_tready ,
+	input               s_axis_wrs2mm_sts_tvalid,
+	input  [7 :0]       s_axis_wrs2mm_sts_tdata ,
+	input               s_axis_wrs2mm_sts_tlast ,
+	input               s_axis_wrs2mm_sts_tkeep ,
 
-    output [31:0]       frame_cnt
+	// result out
+	input                m_axis_output2ps_tready,
+	output     [127:0]   m_axis_output2ps_tdata,
+	output               m_axis_output2ps_tvalid,
+	output               m_axis_output2ps_tlast,
+	output     [15:0]    m_axis_output2ps_tkeep,
+
+	// frame count
+	output [31:0]       frame_cnt
 
 );
 
 `ifdef SIM
-    initial begin
-      #5000
-      $display("Scene: %dx%dx%dx%d",`IMG_H,`IMG_W,`I_CH,`O_CH);
-    end
+	initial begin
+		#5000
+		$display("Scene: %dx%dx%dx%d",`IMG_H,`IMG_W,`I_CH,`O_CH);
+	end
 `endif
 
   /********************************/
   //Config
   /********************************/
 
-    wire [31:0] m_axis_dmconfig_tdata, m_axis_dconfig_tdata,
-      m_axis_wmconfig_tdata, m_axis_wconfig_tdata, m_axis_synconfig_tdata,
-      m_axis_roconfig_tdata, m_axis_wbconfig_tdata, m_axis_ppconfig_tdata,
-      m_axis_dmwconfig_tdata, m_axis_sumconfig_tdata;
-    wire [3:0] status_config, status_wbs, status_act_manager, status_wm,
-      status_dmux, status_wmux, status_sync, status_sum, status_ro, status_post,
-      status_dmw;
-    wire mode_1_1;
+	wire [31:0] m_axis_dmconfig_tdata, m_axis_dconfig_tdata,
+		m_axis_wmconfig_tdata, m_axis_wconfig_tdata, m_axis_synconfig_tdata,
+		m_axis_roconfig_tdata, m_axis_wbconfig_tdata, m_axis_ppconfig_tdata,
+		m_axis_dmwconfig_tdata, m_axis_sumconfig_tdata;
+	wire [3:0] status_config, status_wbs, status_act_manager, status_wm,
+		status_dmux, status_wmux, status_sync, status_sum, status_ro, status_post,
+		status_dmw;
+	wire mode_1_1;
+	wire m_axis_wbconfig_tvalid, m_axis_wbconfig_tready, m_axis_dmconfig_tvalid,
+		m_axis_dmconfig_tready, m_axis_wmconfig_tvalid, m_axis_wmconfig_tready,
+		m_axis_dconfig_tvalid, m_axis_dconfig_tready, m_axis_wconfig_tvalid,
+		m_axis_wconfig_tready, m_axis_synconfig_tvalid, m_axis_synconfig_tready,
+		m_axis_sumconfig_tvalid, m_axis_sumconfig_tready, m_axis_roconfig_tvalid,
+		m_axis_roconfig_tready, m_axis_ppconfig_tvalid, m_axis_ppconfig_tready,
+		m_axis_dmwconfig_tready, m_axis_dmwconfig_tvalid;
 
     ctrl ctrl (
       .clk                        (clk                        ),
@@ -250,6 +266,8 @@ module Top_PL # (
   //Width Trans
   /********************************/
     wire [127:0] m_axis_act_bus128_tdata, m_axis_weight_bias_tdata;
+	wire m_axis_act_bus128_tvalid, m_axis_act_bus128_tready,
+		m_axis_weight_bias_tvalid, m_axis_weight_bias_tready;
 
     width_trans width_trans (
       .clk                        (clk                        ),
@@ -277,6 +295,8 @@ module Top_PL # (
   //Weight Bias Seperate
   /********************************/
     wire [127:0] m_axis_weight_bus128_tdata, m_axis_bias_tdata;
+	wire m_axis_weight_bus128_tvalid, m_axis_weight_bus128_tready,
+		m_axis_bias_tvalid, m_axis_bias_tready;
 
     Weight_Bias_Seperate Weight_Bias_Seperate (
       .clk                        (clk                        ),
@@ -503,8 +523,7 @@ module Top_PL # (
     wire    [`DATA_ACT_WIDTH-1 :0]        m_act_data_3;
     wire    [`DATA_ACT_WIDTH-1 :0]        m_act_data_4;
 
-    wire                                  line_valid  ;
-    wire                                  partial_rstn;
+    wire line_valid, partial_rstn, ro_busy;
 
 
     act_weight_sync  act_weight_sync (
@@ -686,63 +705,7 @@ module Top_PL # (
   //Post Process
   /********************************/
     wire [127:0] post_data;
-    wire         post_valid, post_ready;
-
-    // // abandon
-    // `ifdef SIM_RO2DDRW_ONLY
-    //     reg m_axis_ppsimconfig_tvalid=0;
-    //     reg [31:0]  m_axis_ppsimconfig_tdata=0;
-    //     wire m_axis_ppsimconfig_tready;
-    //     reg R_store_bias = 0;
-
-    //     reg workmode = 0;
-    //     reg mode1_1  = 0;
-
-    //     reg switch_relu=0, relumode=1   ;//Step1
-    //     reg [23:0] relu_coe_config=2    ;//Setp1
-    //     reg switch_rowfilter=0          ;//Step2
-    //     reg switch_bias=1               ;//Step3
-    //     reg switch_sampling=0           ;//Step4
-    //     reg switch_bitintercept=0       ;//Step5
-
-    //     // reg [11:0]  img_h   =56;
-    //     // reg [11:0]  img_w   =56;
-    //     // reg [15:0]  o_ch    =256;
-    //     // reg [31:0]  r_addr  =32'h9000_0000; 
-    //     // reg [7 :0]  total_len = 1;  
-    //     // reg [11:0]  chout_len ='d256;
-
-    //     reg [11:0]  img_h   =28;
-    //     reg [11:0]  img_w   =28;
-    //     reg [15:0]  o_ch    =512;
-    //     reg [31:0]  r_addr  =32'h8D00_0000; 
-    //     reg [7 :0]  total_len = 4;  
-    //     reg [11:0]  chout_len ='d128;
-
-    //     initial begin
-    //       wait(~rst_n);
-    //       wait(rst_n);
-    //       wait(m_axis_ppsimconfig_tready);
-
-    //       R_store_bias = 1 ;
-    //       wait(s_axis_biass2mm_sts_tvalid & s_axis_biass2mm_sts_tready);
-    //       if(s_axis_biass2mm_sts_tdata != 8'h80) $stop;
-
-
-    //       #1 @(posedge clk) begin
-    //         m_axis_ppsimconfig_tvalid = 1;
-    //         m_axis_ppsimconfig_tdata = {img_h,img_w,relumode,switch_bias,switch_sampling,switch_relu,switch_bitintercept,switch_rowfilter, mode1_1, workmode};
-    //       end
-
-    //       #1 @(posedge clk) m_axis_ppsimconfig_tdata = o_ch;
-    //       #1 @(posedge clk) m_axis_ppsimconfig_tdata = relu_coe_config;
-    //       #1 @(posedge clk) m_axis_ppsimconfig_tdata = r_addr;
-    //       #1 @(posedge clk) m_axis_ppsimconfig_tdata = {total_len,chout_len};
-    //       #1 @(posedge clk) m_axis_ppsimconfig_tvalid = 0;
-
-    //     end
-
-    // `endif
+    wire         post_valid, post_ready_ddr, post_ready_output;
 
     `ifdef POST_DATAGEN
         data_gen  #(
@@ -765,61 +728,59 @@ module Top_PL # (
 
     `endif
 
-    reg test_ctrl = 1 ; // for debug
-
     post_process post_process (
-      .clk                      (clk                        ),
-      .rst_n                    (rst_n                      ),
+      .clk                      (clk                                ),
+      .rst_n                    (rst_n                              ),
 
-      .s_axis_ppconfig_tvalid   (m_axis_ppconfig_tvalid     ),
-      .s_axis_ppconfig_tready   (m_axis_ppconfig_tready     ),
-      .s_axis_ppconfig_tdata    (m_axis_ppconfig_tdata      ),
+      .s_axis_ppconfig_tvalid   (m_axis_ppconfig_tvalid             ),
+      .s_axis_ppconfig_tready   (m_axis_ppconfig_tready             ),
+      .s_axis_ppconfig_tdata    (m_axis_ppconfig_tdata              ),
 
-      .reorder_data             (reorder_data               ),
-      .reorder_valid            (reorder_valid              ),
-      .reorder_ready            (reorder_ready              ),
+      .reorder_data             (reorder_data                       ),
+      .reorder_valid            (reorder_valid                      ),
+      .reorder_ready            (reorder_ready                      ),
 
-      .post_data                (post_data                  ),
-      .post_valid               (post_valid                 ),
-      .post_ready               (post_ready    & test_ctrl  ),
+      .post_data                (post_data                          ),
+      .post_valid               (post_valid                         ),
+      .post_ready               (post_ready_ddr | post_ready_output ),
 
-      .s_axis_bias_tvalid       (m_axis_bias_tvalid         ),
-      .s_axis_bias_tready       (m_axis_bias_tready         ),
-      .s_axis_bias_tdata        (m_axis_bias_tdata          ),
+      .s_axis_bias_tvalid       (m_axis_bias_tvalid                 ),
+      .s_axis_bias_tready       (m_axis_bias_tready                 ),
+      .s_axis_bias_tdata        (m_axis_bias_tdata                  ),
 
-      .s_axis_mm2s_tdata        (s_axis_biasmm2s_tdata      ),
-      .s_axis_mm2s_tkeep        (s_axis_biasmm2s_tkeep      ),
-      .s_axis_mm2s_tlast        (s_axis_biasmm2s_tlast      ),
-      .s_axis_mm2s_tready       (s_axis_biasmm2s_tready     ),
-      .s_axis_mm2s_tvalid       (s_axis_biasmm2s_tvalid     ),
+      .s_axis_mm2s_tdata        (s_axis_biasmm2s_tdata              ),
+      .s_axis_mm2s_tkeep        (s_axis_biasmm2s_tkeep              ),
+      .s_axis_mm2s_tlast        (s_axis_biasmm2s_tlast              ),
+      .s_axis_mm2s_tready       (s_axis_biasmm2s_tready             ),
+      .s_axis_mm2s_tvalid       (s_axis_biasmm2s_tvalid             ),
 
-      .m_axis_mm2s_cmd_tready   (m_axis_biasmm2s_cmd_tready ),
-      .m_axis_mm2s_cmd_tvalid   (m_axis_biasmm2s_cmd_tvalid ),
-      .m_axis_mm2s_cmd_tdata    (m_axis_biasmm2s_cmd_tdata  ),
+      .m_axis_mm2s_cmd_tready   (m_axis_biasmm2s_cmd_tready         ),
+      .m_axis_mm2s_cmd_tvalid   (m_axis_biasmm2s_cmd_tvalid         ),
+      .m_axis_mm2s_cmd_tdata    (m_axis_biasmm2s_cmd_tdata          ),
 
-      .s_axis_mm2s_sts_tready   (s_axis_biasmm2s_sts_tready ),
-      .s_axis_mm2s_sts_tvalid   (s_axis_biasmm2s_sts_tvalid ),
-      .s_axis_mm2s_sts_tdata    (s_axis_biasmm2s_sts_tdata  ),
-      .s_axis_mm2s_sts_tlast    (s_axis_biasmm2s_sts_tlast  ),
-      .s_axis_mm2s_sts_tkeep    (s_axis_biasmm2s_sts_tkeep  ),
+      .s_axis_mm2s_sts_tready   (s_axis_biasmm2s_sts_tready         ),
+      .s_axis_mm2s_sts_tvalid   (s_axis_biasmm2s_sts_tvalid         ),
+      .s_axis_mm2s_sts_tdata    (s_axis_biasmm2s_sts_tdata          ),
+      .s_axis_mm2s_sts_tlast    (s_axis_biasmm2s_sts_tlast          ),
+      .s_axis_mm2s_sts_tkeep    (s_axis_biasmm2s_sts_tkeep          ),
 
-      .m_axis_s2mm_tdata        (m_axis_biass2mm_tdata      ),
-      .m_axis_s2mm_tkeep        (m_axis_biass2mm_tkeep      ),
-      .m_axis_s2mm_tlast        (m_axis_biass2mm_tlast      ),
-      .m_axis_s2mm_tready       (m_axis_biass2mm_tready     ),
-      .m_axis_s2mm_tvalid       (m_axis_biass2mm_tvalid     ),
+      .m_axis_s2mm_tdata        (m_axis_biass2mm_tdata              ),
+      .m_axis_s2mm_tkeep        (m_axis_biass2mm_tkeep              ),
+      .m_axis_s2mm_tlast        (m_axis_biass2mm_tlast              ),
+      .m_axis_s2mm_tready       (m_axis_biass2mm_tready             ),
+      .m_axis_s2mm_tvalid       (m_axis_biass2mm_tvalid             ),
 
-      .m_axis_s2mm_cmd_tready   (m_axis_biass2mm_cmd_tready ),
-      .m_axis_s2mm_cmd_tvalid   (m_axis_biass2mm_cmd_tvalid ),
-      .m_axis_s2mm_cmd_tdata    (m_axis_biass2mm_cmd_tdata  ),
-      .s_axis_s2mm_sts_tready   (s_axis_biass2mm_sts_tready ),
+      .m_axis_s2mm_cmd_tready   (m_axis_biass2mm_cmd_tready         ),
+      .m_axis_s2mm_cmd_tvalid   (m_axis_biass2mm_cmd_tvalid         ),
+      .m_axis_s2mm_cmd_tdata    (m_axis_biass2mm_cmd_tdata          ),
+      .s_axis_s2mm_sts_tready   (s_axis_biass2mm_sts_tready         ),
 
-      .s_axis_s2mm_sts_tvalid   (s_axis_biass2mm_sts_tvalid ),
-      .s_axis_s2mm_sts_tdata    (s_axis_biass2mm_sts_tdata  ),
-      .s_axis_s2mm_sts_tlast    (s_axis_biass2mm_sts_tlast  ),
-      .s_axis_s2mm_sts_tkeep    (s_axis_biass2mm_sts_tkeep  ),
+      .s_axis_s2mm_sts_tvalid   (s_axis_biass2mm_sts_tvalid         ),
+      .s_axis_s2mm_sts_tdata    (s_axis_biass2mm_sts_tdata          ),
+      .s_axis_s2mm_sts_tlast    (s_axis_biass2mm_sts_tlast          ),
+      .s_axis_s2mm_sts_tkeep    (s_axis_biass2mm_sts_tkeep          ),
 
-      .status_post          ( status_post)
+      .status_post              (status_post                        )
     );
 
 
@@ -836,8 +797,8 @@ module Top_PL # (
       .s_axis_dmwconfig_tready  (m_axis_dmwconfig_tready    ),
 
       .s_axis_dmw_tdata         (post_data                  ),
-      .s_axis_dmw_tvalid        (post_valid     & test_ctrl ),
-      .s_axis_dmw_tready        (post_ready                 ),
+      .s_axis_dmw_tvalid        (post_valid                 ),
+      .s_axis_dmw_tready        (post_ready_ddr             ),
 
       .m_axis_s2mm_cmd_tready   (m_axis_wrs2mm_cmd_tready   ),
       .m_axis_s2mm_cmd_tdata    (m_axis_wrs2mm_cmd_tdata    ),
@@ -855,34 +816,17 @@ module Top_PL # (
       .m_axis_dmw_tlast         (m_axis_wrs2mm_tlast        ),
       .m_axis_dmw_tkeep         (m_axis_wrs2mm_tkeep        ),
 
+	    .m_axis_output2ps_tready  (m_axis_output2ps_tready    ),
+	    .m_axis_output2ps_tdata   (m_axis_output2ps_tdata     ),
+	    .m_axis_output2ps_tvalid  (m_axis_output2ps_tvalid    ),
+	    .m_axis_output2ps_tlast   (m_axis_output2ps_tlast     ),
+	    .m_axis_output2ps_tkeep   (m_axis_output2ps_tkeep     ),
+
       .status_dmw               (status_dmw)
     );
 
+
   // ------------- FOR SIM ------------- //
-
-    // // abandon
-    // store_bias store_bias (
-    //     .clk                      (clk                    ),
-    //     .rst_n                    (rst_n                  ),
-
-    //     .start                    (R_store_bias           ),
-
-    //     .m_axis_s2mm_tdata        (m_axis_biass2mm_tdata      ),
-    //     .m_axis_s2mm_tkeep        (m_axis_biass2mm_tkeep      ),
-    //     .m_axis_s2mm_tlast        (m_axis_biass2mm_tlast      ),
-    //     .m_axis_s2mm_tready       (m_axis_biass2mm_tready     ),
-    //     .m_axis_s2mm_tvalid       (m_axis_biass2mm_tvalid     ),
-
-    //     .m_axis_s2mm_cmd_tready   (m_axis_biass2mm_cmd_tready ),
-    //     .m_axis_s2mm_cmd_tvalid   (m_axis_biass2mm_cmd_tvalid ),
-    //     .m_axis_s2mm_cmd_tdata    (m_axis_biass2mm_cmd_tdata  ),
-
-    //     .s_axis_s2mm_sts_tready   (s_axis_biass2mm_sts_tready ),
-    //     .s_axis_s2mm_sts_tvalid   (s_axis_biass2mm_sts_tvalid ),
-    //     .s_axis_s2mm_sts_tdata    (s_axis_biass2mm_sts_tdata  ),
-    //     .s_axis_s2mm_sts_tlast    (s_axis_biass2mm_sts_tlast  ),
-    //     .s_axis_s2mm_sts_tkeep    (s_axis_biass2mm_sts_tkeep  )
-    //   );
 
 `else
 
@@ -894,66 +838,30 @@ module Top_PL # (
 // -------------------------------- END --------------------------------- //
 // ---------------------------------------------------------------------- //
 
-  // abandon
-  // /*** TEST ****/
-  // reg start = 0 ;
-
-  //   initial begin
-  //       #5000
-  //       start          <= 1 ;
-  //   end
-
-  //   data_gen  #(
-  //       .Width                (128                ),
-  //       .CONFIG_LEN           (802816             ),
-  //       .FRAME_NUM            (1                  ),
-  //       .Data_Path            ("/home/dlisa/Desktop/Project/systolic_conv_v/mat/DM_act_ref.txt")
-  //   ) 
-  //   act (
-  //       .i_sys_clk            (clk                ),
-  //       .i_sys_rst_n          (rst_n              ),
-
-  //       .i_start              (start              ),
-
-  //       .O_chan_cha1_ph_tdata (m_axis_act_tdata   ),
-  //       .O_chan_ph_tvalid     (m_axis_act_tvalid  ),
-  //       .O_chan_ph_tlast      (                   ),
-  //       .O_chan_ph_tready     (m_axis_act_tready & start )
-  //   );
-
-  // data_gen  #(
-  //     .Width                (128                ),
-  //     .CONFIG_LEN           (9216               ),
-  //     .FRAME_NUM            (1                  ),
-  //     .Data_Path            ("/home/dlisa/Desktop/Project/systolic_conv_v/mat/DM_weight_ref.txt")
-  // ) 
-  // weight (
-  //     .i_sys_clk            (clk                ),
-  //     .i_sys_rst_n          (rst_n              ),
-
-  //     .i_start              (start              ),
-
-  //     .O_chan_cha1_ph_tdata (m_axis_weight_tdata ),
-  //     .O_chan_ph_tvalid     (m_axis_weight_tvalid),
-  //     .O_chan_ph_tlast      (                    ),
-  //     .O_chan_ph_tready     (m_axis_weight_tready & start)
-  // );
-
   // Not define SIM. Define DEBUG. Instance ila
   `ifndef SIM
     `ifdef ILA
 
+      //ila_36_4 ila_1 (
+        //.clk(clk), // input wire clk
+        //.probe0({s_axis_weight_tvalid,s_axis_weight_tready,s_axis_weight_tdata}), // input wire [47:0]  probe0  
+        //.probe1({s_axis_act_tvalid,s_axis_act_tready,s_axis_act_tdata}), // input wire [47:0]  probe1
+        //.probe2({m_axis_act_bus128_tvalid,m_axis_act_bus128_tready,m_axis_act_bus128_tdata[31:0]}), // input wire [47:0]  probe1
+        //.probe3({m_axis_weight_bias_tvalid,m_axis_weight_bias_tready,m_axis_weight_bias_tdata[31:0]}) // input wire [47:0]  probe1
+        //);
+
       ila_36_4 ila_1 (
-        .clk(clk), // input wire clk
-        .probe0({s_axis_weight_tvalid,s_axis_weight_tready,s_axis_weight_tdata}), // input wire [47:0]  probe0  
-        .probe1({s_axis_act_tvalid,s_axis_act_tready,s_axis_act_tdata}), // input wire [47:0]  probe1
-        .probe2({m_axis_act_bus128_tvalid,m_axis_act_bus128_tready,m_axis_act_bus128_tdata[31:0]}), // input wire [47:0]  probe1
-        .probe3({m_axis_weight_bias_tvalid,m_axis_weight_bias_tready,m_axis_weight_bias_tdata[31:0]}) // input wire [47:0]  probe1
+        .clk(clk),
+        .probe0({m_axis_output2ps_tdata[31:0], m_axis_output2ps_tvalid, m_axis_output2ps_tready,
+				         m_axis_output2ps_tlast}),
+        .probe1({m_axis_output2ps_tdata[63:32]}),
+        .probe2({m_axis_output2ps_tdata[95:64]}),
+        .probe3({m_axis_output2ps_tdata[127:96]})
         );
 
       ila_36_4 ila_2 (
         .clk(clk), // input wire clk
-        .probe0({m_axis_weight_bus128_tvalid,m_axis_weight_bus128_tready,m_axis_weight_bus128_tdata[15:0],m_axis_bias_tvalid,m_axis_bias_tready,m_axis_bias_tdata[15:0]}), // input wire [47:0]  probe0
+        .probe0({m_axis_weight_bus128_tvalid,m_axis_weight_bus128_tready, m_axis_weight_bus128_tdata[15:0],m_axis_bias_tvalid,m_axis_bias_tready,m_axis_bias_tdata[15:0]}), // input wire [47:0]  probe0
         .probe1({m_axis_act_tvalid,m_axis_act_tready,m_axis_act_tdata[15:0],m_axis_weight_tvalid,m_axis_weight_tready,m_axis_weight_tdata[15:0]}), // input wire [47:0]  probe1
         .probe2({act_data_valid,act_ready,act_data_1,m_axis_wmux_tvalid,m_axis_wmux_tready,m_axis_wmux_tdata[11:0]}), // input wire [47:0]  probe1
         .probe3({m_act_valid,m_act_data_1,m_weight_valid,m_weight_data[11:0]}) // input wire [47:0]  probe1
@@ -1056,7 +964,6 @@ module Top_PL # (
           end
 
       `endif
-
 
       `ifdef INIT_RO2DDRW
 
