@@ -23,7 +23,7 @@
 //          ch_out 1-64, 65-128, 129-192, 193-256
 //              pix 1-56;
 //
-//      So this module will regard ecah 8 ch_out as a group, 
+//      So this module will regard ecah 8 ch_out as a group,
 //      and round-robin these channles until reaching the end of current line.
 //      and directly write data to DDR;
 //
@@ -34,7 +34,7 @@
 //              ch_out 1-64, 65-1 // ch_out 1-64, 65-128 (total==2: ch_out 129-192, 193-256)
 //                  pix 1-56;
 //
-//      So this module will also regard each 8 ch_out as a group, 
+//      So this module will also regard each 8 ch_out as a group,
 //      and round-robin these channles until reaching the end of current line.
 //      and write data to DDR for multi-times with offset address;
 //
@@ -73,25 +73,25 @@ module reorder (
 	wire [7:0] fifo_valid, fifo_prog_full;
 	wire [191:0] fifo_din  [7:0];
 	wire [191:0] fifo_dout [7:0];
-	reg  [7:0] fifo_rd_en; 
+	reg  [7:0] fifo_rd_en;
 
 	genvar i ;
 	generate
 		for (i=0; i<8; i=i+1) begin:fifo_gen
 
 			reorder_fifo_w192_d1k_fwft fifo (
-				.clk(clk),                  // input wire clk
-				.srst(~rst_n),                // input wire srst
-				.din(fifo_din[i]),                  // input wire [95 : 0] din
-				.wr_en(sum_valid), //& sum_ready),              // input wire wr_en
-				.rd_en(fifo_rd_en[i] & reorder_ready),              // input wire rd_en
-				.dout(fifo_dout[i]),                // output wire [95 : 0] dout
-				.valid(fifo_valid[i]),              // output wire valid
-				.prog_full(fifo_prog_full[i])      // output wire prog_full
-				//.full(full),                // output wire full
-				//.empty(empty),              // output wire empty
-				//.wr_rst_busy(wr_rst_busy),  // output wire wr_rst_busy
-				//.rd_rst_busy(rd_rst_busy)  // output wire rd_rst_busy
+				.clk(clk),                                // input wire clk
+				.srst(~rst_n),                            // input wire srst
+				.din(fifo_din[i]),                        // input wire [95 : 0] din
+				.wr_en(sum_valid), //& sum_ready),        // input wire wr_en
+				.rd_en(fifo_rd_en[i] & reorder_ready),    // input wire rd_en
+				.dout(fifo_dout[i]),                      // output wire [95 : 0] dout
+				.valid(fifo_valid[i]),                    // output wire valid
+				.prog_full(fifo_prog_full[i])             // output wire prog_full
+				//.full(full),                            // output wire full
+				//.empty(empty),                          // output wire empty
+				//.wr_rst_busy(wr_rst_busy),              // output wire wr_rst_busy
+				//.rd_rst_busy(rd_rst_busy)               // output wire rd_rst_busy
 			);
 
 			assign fifo_din[i] = {
@@ -163,7 +163,7 @@ module reorder (
 		end
 		else begin
 			case (ns)
-				CONFIG: begin 
+				CONFIG: begin
 					pix_cnt         <= 'd0 ;
 					chout_cnt       <= 'd0 ;
 					line_cnt        <= 'd0 ;

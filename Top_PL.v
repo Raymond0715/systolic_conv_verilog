@@ -639,7 +639,6 @@ module Top_PL # (
 
 `endif
 
-
 `ifdef INIT_RO2DDRW
 
 	/********************************/
@@ -833,7 +832,6 @@ module Top_PL # (
 
 		.status_dmw                (status_dmw)
 	);
-
 
   // ------------- FOR SIM ------------- //
 

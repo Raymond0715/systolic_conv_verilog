@@ -46,6 +46,7 @@ module Dmover_multich_wr (
 	output     [15:0]   len_unit_wire,
 	output     [15:0]   cnt_package_wire,
 	output              s_axis_dmw_tready_en_wire,
+
 	output     [3:0]    status_dmw
 
 );
@@ -205,26 +206,26 @@ module Dmover_multich_wr (
 				CONFIG: begin
 					case (config_cnt)
 						0:begin
-							s_axis_dmwconfig_tready <= 'd1 ;
-							m_axis_s2mm_cmd_tvalid  <= 'd0 ;
-							s_axis_dmw_tready_en    <= 'd0 ;
-							cnt_channel             <= 'd0 ;
-							cnt_unit                <= 'd0 ;
-							cnt_package             <= 'd0 ;
-							cal_over                <= 'd0 ;
+							s_axis_dmwconfig_tready <= 'd1;
+							m_axis_s2mm_cmd_tvalid  <= 'd0;
+							s_axis_dmw_tready_en    <= 'd0;
+							cnt_channel             <= 'd0;
+							cnt_unit                <= 'd0;
+							cnt_package             <= 'd0;
+							cal_over                <= 'd0;
 
 							if (s_axis_dmwconfig_tvalid & s_axis_dmwconfig_tready) begin
-								config_cnt  <= config_cnt + 1'b1 ;
-								{switch_sampling, output_sink, chout_perwtile, chout_group_perwram} <= 
-									s_axis_dmwconfig_tdata ;
+								config_cnt  <= config_cnt + 1'b1;
+								{switch_sampling, output_sink, chout_perwtile, chout_group_perwram} <=
+									s_axis_dmwconfig_tdata;
 							end
 						end
 
 						1:begin
-							s_axis_dmwconfig_tready <= 1 ;
+							s_axis_dmwconfig_tready <= 1;
 
 							if (s_axis_dmwconfig_tvalid & s_axis_dmwconfig_tready) begin
-								config_cnt  <= config_cnt + 1'b1 ;
+								config_cnt  <= config_cnt + 1'b1;
 								img_w <= switch_sampling ?
 									s_axis_dmwconfig_tdata[11: 1]
 									: s_axis_dmwconfig_tdata[11: 0];
@@ -263,32 +264,32 @@ module Dmover_multich_wr (
 				end
 
 				DMOVER_CONFIG: begin
-					m_axis_s2mm_cmd_tdata  <= w_cmd ;
-					m_axis_s2mm_cmd_tvalid <= 1 ;
+					m_axis_s2mm_cmd_tdata  <= w_cmd;
+					m_axis_s2mm_cmd_tvalid <= 1;
 				end
 
 				DMOVER_WR: begin
-					m_axis_s2mm_cmd_tvalid <= 0 ;
-					s_axis_dmw_tready_en   <= 1 ;
-					
+					m_axis_s2mm_cmd_tvalid <= 0;
+					s_axis_dmw_tready_en   <= 1;
+
 					if(s_axis_dmw_tvalid && s_axis_dmw_tready) begin
-						cnt_unit <= cnt_unit + 1 ;
+						cnt_unit <= cnt_unit + 1;
 					end
 				end
 
 				ADDR_UPDATE: begin
-					s_axis_dmw_tready_en <= 0 ;
-					cnt_unit <= 0 ;
-					
+					s_axis_dmw_tready_en <= 0;
+					cnt_unit <= 0;
+
 					if(cnt_package+1 < img_h) begin
 						w_addr <= w_addr + channel_shift;
-						cnt_package <= cnt_package + 1 ;
+						cnt_package <= cnt_package + 1;
 					end
 					else begin
-						cnt_package <= 0 ;
+						cnt_package <= 0;
 
 						if(cnt_channel+1 < w_tile) begin
-							cnt_channel <= cnt_channel + 1 ;
+							cnt_channel <= cnt_channel + 1;
 							addr_base   <= addr_base + addr_unit;
 							w_addr      <= addr_base + addr_unit;
 						end
