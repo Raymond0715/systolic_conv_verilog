@@ -742,7 +742,7 @@ module Top_PL # (
 
 		.post_data                (post_data                          ),
 		.post_valid               (post_valid                         ),
-		.post_ready               (post_ready_ddr | post_ready_output ),
+		.post_ready               (post_ready_ddr                     ),
 
 		.s_axis_bias_tvalid       (m_axis_bias_tvalid                 ),
 		.s_axis_bias_tready       (m_axis_bias_tready                 ),
@@ -787,42 +787,51 @@ module Top_PL # (
 	/********************************/
 	//MultiChannel WrDDR
 	/********************************/
+	wire [31:0] cnt_unit_wire;
+	wire [15:0] len_unit_wire;
+	wire [15:0] cnt_package_wire;
+	wire        s_axis_dmw_tready_en_wire;
 
 	Dmover_multich_wr multich_wr (
-		.clk                      (clk                        ),
-		.rst_n                    (rst_n                      ),
+		.clk                       (clk                        ),
+		.rst_n                     (rst_n                      ),
 
-		.s_axis_dmwconfig_tdata   (m_axis_dmwconfig_tdata     ),
-		.s_axis_dmwconfig_tvalid  (m_axis_dmwconfig_tvalid    ),
-		.s_axis_dmwconfig_tready  (m_axis_dmwconfig_tready    ),
+		.s_axis_dmwconfig_tdata    (m_axis_dmwconfig_tdata     ),
+		.s_axis_dmwconfig_tvalid   (m_axis_dmwconfig_tvalid    ),
+		.s_axis_dmwconfig_tready   (m_axis_dmwconfig_tready    ),
 
-		.s_axis_dmw_tdata         (post_data                  ),
-		.s_axis_dmw_tvalid        (post_valid                 ),
-		.s_axis_dmw_tready        (post_ready_ddr             ),
+		.s_axis_dmw_tdata          (post_data                  ),
+		.s_axis_dmw_tvalid         (post_valid                 ),
+		.s_axis_dmw_tready         (post_ready_ddr             ),
 
-		.m_axis_s2mm_cmd_tready   (m_axis_wrs2mm_cmd_tready   ),
-		.m_axis_s2mm_cmd_tdata    (m_axis_wrs2mm_cmd_tdata    ),
-		.m_axis_s2mm_cmd_tvalid   (m_axis_wrs2mm_cmd_tvalid   ),
+		.m_axis_s2mm_cmd_tready    (m_axis_wrs2mm_cmd_tready   ),
+		.m_axis_s2mm_cmd_tdata     (m_axis_wrs2mm_cmd_tdata    ),
+		.m_axis_s2mm_cmd_tvalid    (m_axis_wrs2mm_cmd_tvalid   ),
 
-		.s_axis_s2mm_sts_tdata    (s_axis_wrs2mm_sts_tdata    ),
-		.s_axis_s2mm_sts_tvalid   (s_axis_wrs2mm_sts_tvalid   ),
-		.s_axis_s2mm_sts_tlast    (s_axis_wrs2mm_sts_tlast    ),
-		.s_axis_s2mm_sts_tkeep    (s_axis_wrs2mm_sts_tkeep    ),
-		.s_axis_s2mm_sts_tready   (s_axis_wrs2mm_sts_tready   ),
+		.s_axis_s2mm_sts_tdata     (s_axis_wrs2mm_sts_tdata    ),
+		.s_axis_s2mm_sts_tvalid    (s_axis_wrs2mm_sts_tvalid   ),
+		.s_axis_s2mm_sts_tlast     (s_axis_wrs2mm_sts_tlast    ),
+		.s_axis_s2mm_sts_tkeep     (s_axis_wrs2mm_sts_tkeep    ),
+		.s_axis_s2mm_sts_tready    (s_axis_wrs2mm_sts_tready   ),
 
-		.m_axis_dmw_tready        (m_axis_wrs2mm_tready       ),
-		.m_axis_dmw_tdata         (m_axis_wrs2mm_tdata        ),
-		.m_axis_dmw_tvalid        (m_axis_wrs2mm_tvalid       ),
-		.m_axis_dmw_tlast         (m_axis_wrs2mm_tlast        ),
-		.m_axis_dmw_tkeep         (m_axis_wrs2mm_tkeep        ),
+		.m_axis_dmw_tready         (m_axis_wrs2mm_tready       ),
+		.m_axis_dmw_tdata          (m_axis_wrs2mm_tdata        ),
+		.m_axis_dmw_tvalid         (m_axis_wrs2mm_tvalid       ),
+		.m_axis_dmw_tlast          (m_axis_wrs2mm_tlast        ),
+		.m_axis_dmw_tkeep          (m_axis_wrs2mm_tkeep        ),
 
-		.m_axis_output2ps_tready  (m_axis_output2ps_tready    ),
-		.m_axis_output2ps_tdata   (m_axis_output2ps_tdata     ),
-		.m_axis_output2ps_tvalid  (m_axis_output2ps_tvalid    ),
-		.m_axis_output2ps_tlast   (m_axis_output2ps_tlast     ),
-		.m_axis_output2ps_tkeep   (m_axis_output2ps_tkeep     ),
+		.m_axis_output2ps_tready   (m_axis_output2ps_tready    ),
+		.m_axis_output2ps_tdata    (m_axis_output2ps_tdata     ),
+		.m_axis_output2ps_tvalid   (m_axis_output2ps_tvalid    ),
+		.m_axis_output2ps_tlast    (m_axis_output2ps_tlast     ),
+		.m_axis_output2ps_tkeep    (m_axis_output2ps_tkeep     ),
 
-		.status_dmw               (status_dmw)
+		.cnt_unit_wire             (cnt_unit_wire              ),
+		.len_unit_wire             (len_unit_wire              ),
+		.cnt_package_wire          (cnt_package_wire           ),
+		.s_axis_dmw_tready_en_wire (s_axis_dmw_tready_en_wire  ),
+
+		.status_dmw                (status_dmw)
 	);
 
 
@@ -844,48 +853,58 @@ module Top_PL # (
 
 			//ila_36_4 ila_1 (
 				//.clk(clk), // input wire clk
-				//.probe0({s_axis_weight_tvalid,s_axis_weight_tready,s_axis_weight_tdata}), // input wire [47:0]  probe0  
-				//.probe1({s_axis_act_tvalid,s_axis_act_tready,s_axis_act_tdata}), // input wire [47:0]  probe1
-				//.probe2({m_axis_act_bus128_tvalid,m_axis_act_bus128_tready,m_axis_act_bus128_tdata[31:0]}), // input wire [47:0]  probe1
-				//.probe3({m_axis_weight_bias_tvalid,m_axis_weight_bias_tready,m_axis_weight_bias_tdata[31:0]}) // input wire [47:0]  probe1
+				//.probe0({s_axis_weight_tvalid,s_axis_weight_tready,s_axis_weight_tdata}),
+				//.probe1({s_axis_act_tvalid,s_axis_act_tready,s_axis_act_tdata}),
+				//.probe2({m_axis_act_bus128_tvalid,m_axis_act_bus128_tready,m_axis_act_bus128_tdata[31:0]}),
+				//.probe3({m_axis_weight_bias_tvalid,m_axis_weight_bias_tready,m_axis_weight_bias_tdata[31:0]})
 				//);
 
-			ila_36_4 ila_1 (
+			//ila_36_4 ila_1 (
+				//.clk(clk),
+				//.probe0({m_axis_output2ps_tdata[31:0], m_axis_output2ps_tvalid, m_axis_output2ps_tready,
+					//m_axis_output2ps_tlast}),
+				//.probe1({m_axis_output2ps_tdata[63:32]}),
+				//.probe2({m_axis_output2ps_tdata[95:64]}),
+				//.probe3({m_axis_output2ps_tdata[127:96]})
+				//);
+
+			//ila_36_4 ila_2 (
+				//.clk(clk),
+				//.probe0({m_axis_weight_bus128_tvalid, m_axis_weight_bus128_tready,
+					//m_axis_weight_bus128_tdata[15:0], m_axis_bias_tvalid, m_axis_bias_tready,
+					//m_axis_bias_tdata[15:0]}),
+				//.probe1({m_axis_act_tvalid, m_axis_act_tready, m_axis_act_tdata[15:0], m_axis_weight_tvalid,
+					//m_axis_weight_tready,m_axis_weight_tdata[15:0]}),
+				//.probe2({act_data_valid, act_ready, act_data_1, m_axis_wmux_tvalid, m_axis_wmux_tready,
+					//m_axis_wmux_tdata[11:0]}),
+				//.probe3({m_act_valid,m_act_data_1,m_weight_valid,m_weight_data[11:0]})
+			//);
+
+
+			ila_36_4 ila_dmw (
 				.clk(clk),
-				.probe0({m_axis_output2ps_tdata[31:0], m_axis_output2ps_tvalid, m_axis_output2ps_tready,
-					m_axis_output2ps_tlast}),
-				.probe1({m_axis_output2ps_tdata[63:32]}),
-				.probe2({m_axis_output2ps_tdata[95:64]}),
-				.probe3({m_axis_output2ps_tdata[127:96]})
-				);
-
-			ila_36_4 ila_2 (
-				.clk(clk), // input wire clk
-				.probe0({m_axis_weight_bus128_tvalid, m_axis_weight_bus128_tready,
-					m_axis_weight_bus128_tdata[15:0], m_axis_bias_tvalid, m_axis_bias_tready,
-					m_axis_bias_tdata[15:0]}), // input wire [47:0]  probe0
-				.probe1({m_axis_act_tvalid, m_axis_act_tready, m_axis_act_tdata[15:0], m_axis_weight_tvalid,
-					m_axis_weight_tready,m_axis_weight_tdata[15:0]}), // input wire [47:0]  probe1
-				.probe2({act_data_valid, act_ready, act_data_1, m_axis_wmux_tvalid, m_axis_wmux_tready,
-					m_axis_wmux_tdata[11:0]}), // input wire [47:0]  probe1
-				.probe3({m_act_valid,m_act_data_1,m_weight_valid,m_weight_data[11:0]}) // input wire [47:0]  probe1
+				.probe0({cnt_unit_wire, status_dmw}),
+				.probe1({len_unit_wire, cnt_package_wire, post_valid}),
+				.probe2({m_axis_wrs2mm_tvalid, m_axis_wrs2mm_tready, post_ready_ddr,
+					s_axis_dmw_tready_en_wire, m_axis_wrs2mm_tdata[31:0]})
 			);
 
-			ila_36_4 ila_3 (
-				.clk(clk), // input wire clk
-				.probe0({conv_valid[0], conv_data_1[15:0], conv_data_2[15:0]}), // input wire [47:0]  probe0
-				.probe1({reorder_valid, reorder_ready, reorder_data[31:0]}), // input wire [47:0]  probe1
-				.probe2({m_axis_wrs2mm_tvalid, m_axis_wrs2mm_tready, m_axis_wrs2mm_tdata[31:0]}), // input wire [47:0]  probe1
-				.probe3({conv_data_1[39:24], conv_data_2[39:24]}) // input wire [47:0]  probe1
-			);
+			//ila_36_4 ila_3 (
+				//.clk(clk),
+				//.probe0({conv_valid[0], conv_data_1[15:0], conv_data_2[15:0]}),
+				//.probe1({reorder_valid, reorder_ready, reorder_data[31:0]}),
+				//.probe2({m_axis_wrs2mm_tvalid, m_axis_wrs2mm_tready, m_axis_wrs2mm_tdata[31:0]}),
+				//.probe3({conv_data_1[39:24], conv_data_2[39:24]})
+			//);
 
 			ila_36_4 ila_4 (
-				.clk(clk), // input wire clk
+				.clk(clk),
 				.probe0({status_config, status_wbs, status_act_manager, status_wm, status_dmux, status_wmux,
-					status_sync, status_sum, status_ro}), // input wire [47:0]  probe0
-				.probe1({status_post, status_dmw, sum_data[23:0]}), // input wire [47:0]  probe1
-				.probe2({sum_valid, sum_data[47:24]}), // input wire [47:0]  probe1
-				.probe3({sum_data[24*64-1:24*63]}) // input wire [47:0]  probe1
+					status_sync, status_sum, status_ro}),
+				//.probe1({status_post, status_dmw, sum_data[23:0]}),
+				.probe1({status_post, sum_data[23:0]}),
+				.probe2({sum_valid, sum_data[47:24]}),
+				.probe3({sum_data[24*64-1:24*63]})
 			);
 		`endif
 	`endif

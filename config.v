@@ -804,11 +804,6 @@ module ctrl (
 		m_axis_sumconfig_tready, m_axis_roconfig_tready, m_axis_ppconfig_tready,
 		m_axis_dmwconfig_tready};
 
-	ila_36_4 ila_config_signal (
-		.clk(clk),
-		.probe0({config_finish_bus, config_ready_bus})
-	);
-
 	div_gen_0 div_32 (
 		.aclk(clk),                                       // input wire aclk
 		.s_axis_divisor_tvalid(s_axis_divisor_tvalid),    // input wire s_axis_divisor_tvalid

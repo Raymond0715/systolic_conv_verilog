@@ -26,21 +26,26 @@ module Dmover_multich_wr (
 	input               s_axis_s2mm_sts_tlast   ,
 	input               s_axis_s2mm_sts_tkeep   ,
 	output  reg         s_axis_s2mm_sts_tready = 1  ,
-	
+
 	// DDR data output
 	input               m_axis_dmw_tready   ,
 	output      [127:0] m_axis_dmw_tdata    ,
 	output              m_axis_dmw_tvalid   ,
 	output  reg         m_axis_dmw_tlast = 1'b0    ,
 	output  reg [15:0]  m_axis_dmw_tkeep = 16'hffff ,
-	
+
 	// SDK data output
 	input               m_axis_output2ps_tready,
 	output     [127:0]  m_axis_output2ps_tdata,
 	output              m_axis_output2ps_tvalid,
 	output reg          m_axis_output2ps_tlast,
 	output reg [15:0]   m_axis_output2ps_tkeep = 16'hffff,
-	
+
+	// DEBUG
+	output     [31:0]   cnt_unit_wire,
+	output     [15:0]   len_unit_wire,
+	output     [15:0]   cnt_package_wire,
+	output              s_axis_dmw_tready_en_wire,
 	output     [3:0]    status_dmw
 
 );
@@ -84,10 +89,11 @@ module Dmover_multich_wr (
 
 	// DDR output
 	// Ready singal for post data 
-	assign s_axis_dmw_tready = (s_axis_dmw_tready_en & m_axis_dmw_tready) | m_axis_output2ps_tready ;
+	//assign s_axis_dmw_tready = s_axis_dmw_tready_en & (m_axis_dmw_tready | m_axis_output2ps_tready);
+	assign s_axis_dmw_tready = s_axis_dmw_tready_en & m_axis_dmw_tready;
 	// Valid signal for DDR datamover.
-	assign m_axis_dmw_tvalid = ~output_sink & s_axis_dmw_tready_en & s_axis_dmw_tvalid ;
-	assign m_axis_dmw_tdata = s_axis_dmw_tdata ;
+	assign m_axis_dmw_tvalid = ~output_sink & s_axis_dmw_tready_en & s_axis_dmw_tvalid;
+	assign m_axis_dmw_tdata = s_axis_dmw_tdata;
 
 	// SDK output
 	assign m_axis_output2ps_tvalid = output_sink & s_axis_dmw_tvalid;
@@ -95,27 +101,31 @@ module Dmover_multich_wr (
 
 	assign w_btt = addr_unit;
 
-	reg [2:0]   c_state   ;
-	reg [2:0]   n_state   ;
+	reg [2:0]   c_state;
+	reg [2:0]   n_state;
 
+	assign cnt_unit_wire = cnt_unit;
+	assign len_unit_wire = len_unit;
+	assign cnt_package_wire = cnt_package;
+	assign s_axis_dmw_tready_en_wire = s_axis_dmw_tready_en;
 	assign status_dmw = c_state;
 
-	localparam CONFIG           = 3'b000    ;
+	localparam CONFIG           = 3'b000;
 
 	// Calculate parameters(initial_addr, offset_addr...) which will be used
-	localparam PARA_CAL         = 3'b001    ;
+	localparam PARA_CAL         = 3'b001;
 
 	// Config Datamover
-	localparam DMOVER_CONFIG    = 3'b011    ;
+	localparam DMOVER_CONFIG    = 3'b011;
 
 	//Write a package of Data to Datamover
-	localparam DMOVER_WR        = 3'b010    ;
+	localparam DMOVER_WR        = 3'b010;
 
 	//End FSM, or recalculate wr_addr and back to DMOVER_CONFIG
-	localparam ADDR_UPDATE      = 3'b110    ;
+	localparam ADDR_UPDATE      = 3'b110;
 
-	localparam END              = 3'b100    ;
-	localparam SDK_OUTPUT       = 3'b101    ;
+	localparam END              = 3'b100;
+	localparam SDK_OUTPUT       = 3'b101;
 
 	always @(posedge clk) begin
 		if(~rst_n) begin
@@ -229,8 +239,8 @@ module Dmover_multich_wr (
 						end
 
 						2:begin
+							s_axis_dmwconfig_tready <= 1 ;
 							if (s_axis_dmwconfig_tvalid & s_axis_dmwconfig_tready) begin
-								s_axis_dmwconfig_tready <= 0 ;
 								config_cnt <= config_cnt + 1'b1 ;
 
 								len_unit <= img_w * (chout_perwtile>>3);//bus128
@@ -242,9 +252,12 @@ module Dmover_multich_wr (
 						end
 
 						3: begin
-							act_len <= s_axis_dmwconfig_tdata;
-							channel_shift <= addr_unit * w_tile;
-							config_cnt <= config_cnt + 1'b1;
+							if (s_axis_dmwconfig_tvalid & s_axis_dmwconfig_tready) begin
+								s_axis_dmwconfig_tready <= 0 ;
+								act_len <= s_axis_dmwconfig_tdata;
+								channel_shift <= addr_unit * w_tile;
+								config_cnt <= config_cnt + 1'b1;
+							end
 						end
 					endcase
 				end
@@ -255,8 +268,8 @@ module Dmover_multich_wr (
 				end
 
 				DMOVER_WR: begin
-					m_axis_s2mm_cmd_tvalid  <= 0 ;
-					s_axis_dmw_tready_en    <= 1 ;
+					m_axis_s2mm_cmd_tvalid <= 0 ;
+					s_axis_dmw_tready_en   <= 1 ;
 					
 					if(s_axis_dmw_tvalid && s_axis_dmw_tready) begin
 						cnt_unit <= cnt_unit + 1 ;
@@ -294,17 +307,17 @@ module Dmover_multich_wr (
 				end
 
 				END: begin
-					cnt_channel            <= 'd0 ;
-					cnt_package            <= 'd0 ;
-					cnt_unit               <= 'd0 ;
-					cnt_tile               <= 'd0 ;
-					chout_perwtile         <= 'd0 ;
-					chout_group_perwram    <= 'd0 ;
-					addr_unit              <= 'd0 ;
-					config_cnt             <= 'd0 ;
-					m_axis_s2mm_cmd_tvalid <= 'd0 ;
-					s_axis_dmw_tready_en   <= 'd0 ;
-					cal_over               <= 'd0 ;
+					cnt_channel            <= 'd0;
+					cnt_package            <= 'd0;
+					cnt_unit               <= 'd0;
+					cnt_tile               <= 'd0;
+					chout_perwtile         <= 'd0;
+					chout_group_perwram    <= 'd0;
+					addr_unit              <= 'd0;
+					config_cnt             <= 'd0;
+					m_axis_s2mm_cmd_tvalid <= 'd0;
+					s_axis_dmw_tready_en   <= 'd0;
+					cal_over               <= 'd0;
 					cnt_sdk_data           <= 'd0;
 					m_axis_output2ps_tlast <= 'd0;
 				end
