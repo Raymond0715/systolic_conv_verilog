@@ -16,21 +16,21 @@ module Top_PL # (
 	// config
 	input               s_axis_config_tvalid    ,
 	output              s_axis_config_tready    ,
-	input       [31:0]  s_axis_config_tdata     ,
+	input  [31:0]       s_axis_config_tdata     ,
 
 	// act in
 	input               s_axis_act_tvalid,
 	output              s_axis_act_tready,
-	input [31:0]        s_axis_act_tdata,
+	input  [31:0]       s_axis_act_tdata,
 	input               s_axis_act_tlast,
-	input [3:0]         s_axis_act_tkeep,
+	input  [3:0]        s_axis_act_tkeep,
 
 	// weight in
 	input               s_axis_weight_tvalid,
 	output              s_axis_weight_tready,
-	input [31:0]        s_axis_weight_tdata,
+	input  [31:0]       s_axis_weight_tdata,
 	input               s_axis_weight_tlast,
-	input [3:0]         s_axis_weight_tkeep,
+	input  [3:0]        s_axis_weight_tkeep,
 
 	/*****Datamover1*****/
 	//m_axis_s2mm
@@ -41,8 +41,8 @@ module Top_PL # (
 	output              m_axis_s2mm_tvalid,
 
 	//s_axis_mm2s
-	input       [127:0] s_axis_mm2s_tdata,
-	input       [15:0]  s_axis_mm2s_tkeep,
+	input  [127:0]      s_axis_mm2s_tdata,
+	input  [15:0]       s_axis_mm2s_tkeep,
 	input               s_axis_mm2s_tlast,
 	output              s_axis_mm2s_tready,
 	input               s_axis_mm2s_tvalid,
@@ -50,12 +50,12 @@ module Top_PL # (
 	//m_axis_s2mm_cmd
 	input               m_axis_s2mm_cmd_tready,
 	output              m_axis_s2mm_cmd_tvalid,
-	output      [71:0]  m_axis_s2mm_cmd_tdata ,
+	output [71:0]       m_axis_s2mm_cmd_tdata ,
 
 	//m_axis_mm2s_cmd
 	input               m_axis_mm2s_cmd_tready,
 	output              m_axis_mm2s_cmd_tvalid,
-	output      [71:0]  m_axis_mm2s_cmd_tdata ,
+	output [71:0]       m_axis_mm2s_cmd_tdata ,
 
 	//s_axis_mm2s_sts
 	output              s_axis_mm2s_sts_tready,
@@ -80,8 +80,8 @@ module Top_PL # (
 	output              m_axis_weight_s2mm_tvalid,
 
 	//s_axis_mm2s
-	input       [127:0] s_axis_weight_mm2s_tdata,
-	input       [15:0]  s_axis_weight_mm2s_tkeep,
+	input  [127:0]      s_axis_weight_mm2s_tdata,
+	input  [15:0]       s_axis_weight_mm2s_tkeep,
 	input               s_axis_weight_mm2s_tlast,
 	output              s_axis_weight_mm2s_tready,
 	input               s_axis_weight_mm2s_tvalid,
@@ -89,12 +89,12 @@ module Top_PL # (
 	//m_axis_s2mm_cmd
 	input               m_axis_weight_s2mm_cmd_tready,
 	output              m_axis_weight_s2mm_cmd_tvalid,
-	output      [71:0]  m_axis_weight_s2mm_cmd_tdata ,
+	output [71:0]       m_axis_weight_s2mm_cmd_tdata ,
 
 	//m_axis_mm2s_cmd
 	input               m_axis_weight_mm2s_cmd_tready,
 	output              m_axis_weight_mm2s_cmd_tvalid,
-	output      [71:0]  m_axis_weight_mm2s_cmd_tdata ,
+	output [71:0]       m_axis_weight_mm2s_cmd_tdata ,
 
 	//s_axis_mm2s_sts
 	output              s_axis_weight_mm2s_sts_tready,
@@ -119,8 +119,8 @@ module Top_PL # (
 	output              m_axis_biass2mm_tvalid,
 
 	//s_axis_mm2s
-	input       [31:0]  s_axis_biasmm2s_tdata,
-	input       [3:0]   s_axis_biasmm2s_tkeep,
+	input  [31:0]       s_axis_biasmm2s_tdata,
+	input  [3:0]        s_axis_biasmm2s_tkeep,
 	input               s_axis_biasmm2s_tlast,
 	output              s_axis_biasmm2s_tready,
 	input               s_axis_biasmm2s_tvalid,
@@ -128,12 +128,12 @@ module Top_PL # (
 	//m_axis_s2mm_cmd
 	input               m_axis_biass2mm_cmd_tready,
 	output              m_axis_biass2mm_cmd_tvalid,
-	output      [71:0]  m_axis_biass2mm_cmd_tdata ,
+	output [71:0]       m_axis_biass2mm_cmd_tdata ,
 
 	//m_axis_mm2s_cmd
 	input               m_axis_biasmm2s_cmd_tready,
 	output              m_axis_biasmm2s_cmd_tvalid,
-	output      [71:0]  m_axis_biasmm2s_cmd_tdata ,
+	output [71:0]       m_axis_biasmm2s_cmd_tdata ,
 
 	//s_axis_mm2s_sts
 	output              s_axis_biasmm2s_sts_tready,
@@ -160,7 +160,7 @@ module Top_PL # (
 	//m_axis_s2mm_cmd
 	input               m_axis_wrs2mm_cmd_tready,
 	output              m_axis_wrs2mm_cmd_tvalid,
-	output      [71:0]  m_axis_wrs2mm_cmd_tdata ,
+	output [71:0]       m_axis_wrs2mm_cmd_tdata ,
 
 	//s_axis_s2mm_sts
 	output              s_axis_wrs2mm_sts_tready ,
@@ -171,10 +171,10 @@ module Top_PL # (
 
 	// result out
 	input                m_axis_output2ps_tready,
-	output     [127:0]   m_axis_output2ps_tdata,
+	output [127:0]       m_axis_output2ps_tdata,
 	output               m_axis_output2ps_tvalid,
 	output               m_axis_output2ps_tlast,
-	output     [15:0]    m_axis_output2ps_tkeep,
+	output [15:0]        m_axis_output2ps_tkeep,
 
 	// frame count
 	output [31:0]       frame_cnt

@@ -1,22 +1,20 @@
 `include "SIM_CTRL.vh"
 
 // Activation value.
-`define DATA_ACT_WIDTH          12
-`define BUS128_DATA_ACT_NUM     10
-`define INT_ACT_WIDTH           4
+`define DATA_ACT_WIDTH          8
+`define BUS128_DATA_ACT_NUM     16
 
 // Weight value.
-`define DATA_WEIGHT_WIDTH       12
-`define BUS128_DATA_WEIGHT_NUM  10
-`define INT_WEIGHT_WIDTH        4
+`define DATA_WEIGHT_WIDTH       4
+`define BUS128_DATA_WEIGHT_NUM  32
 
 // Intermediate value.
-`define DATA_INTER_WIDTH        24
-`define BUS128_DATA_INTER_NUM   5
-`define INT_INTER_WIDTH         8
+`define DATA_INTER_WIDTH        16
+`define BUS128_DATA_INTER_NUM   8
 
 // Mult LANTANCY
-`define MULT_LANTANCY 3
+// `define CONV_OP_LANTANCY 3
+`define CONV_OP_LANTANCY 0
 `define DIV_LANTANCY  51 //this should be lantency in vivado plus 1
 
 // PS CONFIG
