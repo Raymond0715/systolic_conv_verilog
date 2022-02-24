@@ -13,7 +13,7 @@ module post_process (
 	output                                      s_axis_bias_tready  ,
 	input           [127:0]                     s_axis_bias_tdata   ,
 
-	input           [191 :0]                    reorder_data    ,
+	input           [`DATA_INTER_WIDTH*8-1 :0]  reorder_data    ,
 	input                                       reorder_valid   ,
 	output  reg                                 reorder_ready   ,
 
@@ -93,15 +93,17 @@ module post_process (
 	//bias cache
 	reg [11:0]      bias_ram_waddr;
 	wire[8 :0]      bias_ram_raddr;
-	wire[24*8-1:0]  bias_dout;
+	//wire[24*8-1:0]  bias_dout;
+	wire[`DATA_INTER_WIDTH*8-1:0]  bias_dout;
 	wire bias_we;
 	assign bias_we = s_axis_mm2s_tvalid & s_axis_mm2s_tready;
 
-	ram_i24_o192_d4k_512 ram_bias (
+	//ram_i24_o192_d4k_512 ram_bias (
+	ram_i16_o128_d4k_512 ram_bias (
 		.clka(clk),    // input wire clka
 		.wea(bias_we),      // input wire [0 : 0] wea
 		.addra(bias_ram_waddr),  // input wire [11 : 0] addra
-		.dina(s_axis_mm2s_tdata[23:0]),    // input wire [23 : 0] dina
+		.dina(s_axis_mm2s_tdata[`DATA_INTER_WIDTH-1:0]),    // input wire [23 : 0] dina
 		.clkb(clk),    // input wire clkb
 		.rstb(~rst_n),    // input wire rstb
 		.addrb(bias_ram_raddr),  // input wire [11 : 0] addrb
@@ -334,42 +336,69 @@ module post_process (
 
 //Step1----Throw First line
 	reg             step1_valid;
-	reg [23:0]      step1_out[7:0];
+	//reg [23:0]      step1_out[7:0];
+	reg [`DATA_INTER_WIDTH:0]      step1_out[7:0];
 
 
 	always @ (posedge clk) begin
 		step1_valid     <= &line_cnt? 0:reorder_valid & reorder_ready;
-		step1_out[0]    <= &line_cnt? 0:reorder_data[24*8-1 : 24*7] ;
-		step1_out[1]    <= &line_cnt? 0:reorder_data[24*7-1 : 24*6] ;
-		step1_out[2]    <= &line_cnt? 0:reorder_data[24*6-1 : 24*5] ;
-		step1_out[3]    <= &line_cnt? 0:reorder_data[24*5-1 : 24*4] ;
-		step1_out[4]    <= &line_cnt? 0:reorder_data[24*4-1 : 24*3] ;
-		step1_out[5]    <= &line_cnt? 0:reorder_data[24*3-1 : 24*2] ;
-		step1_out[6]    <= &line_cnt? 0:reorder_data[24*2-1 : 24*1] ;
-		step1_out[7]    <= &line_cnt? 0:reorder_data[24*1-1 : 24*0] ;
+		//step1_out[0]    <= &line_cnt? 0:reorder_data[24*8-1 : 24*7] ;
+		//step1_out[1]    <= &line_cnt? 0:reorder_data[24*7-1 : 24*6] ;
+		//step1_out[2]    <= &line_cnt? 0:reorder_data[24*6-1 : 24*5] ;
+		//step1_out[3]    <= &line_cnt? 0:reorder_data[24*5-1 : 24*4] ;
+		//step1_out[4]    <= &line_cnt? 0:reorder_data[24*4-1 : 24*3] ;
+		//step1_out[5]    <= &line_cnt? 0:reorder_data[24*3-1 : 24*2] ;
+		//step1_out[6]    <= &line_cnt? 0:reorder_data[24*2-1 : 24*1] ;
+		//step1_out[7]    <= &line_cnt? 0:reorder_data[24*1-1 : 24*0] ;
+		step1_out[0] <= &line_cnt ? 0:reorder_data[`DATA_INTER_WIDTH*8-1: `DATA_INTER_WIDTH*7];
+		step1_out[1] <= &line_cnt ? 0:reorder_data[`DATA_INTER_WIDTH*7-1: `DATA_INTER_WIDTH*6];
+		step1_out[2] <= &line_cnt ? 0:reorder_data[`DATA_INTER_WIDTH*6-1: `DATA_INTER_WIDTH*5];
+		step1_out[3] <= &line_cnt ? 0:reorder_data[`DATA_INTER_WIDTH*5-1: `DATA_INTER_WIDTH*4];
+		step1_out[4] <= &line_cnt ? 0:reorder_data[`DATA_INTER_WIDTH*4-1: `DATA_INTER_WIDTH*3];
+		step1_out[5] <= &line_cnt ? 0:reorder_data[`DATA_INTER_WIDTH*3-1: `DATA_INTER_WIDTH*2];
+		step1_out[6] <= &line_cnt ? 0:reorder_data[`DATA_INTER_WIDTH*2-1: `DATA_INTER_WIDTH*1];
+		step1_out[7] <= &line_cnt ? 0:reorder_data[`DATA_INTER_WIDTH*1-1: `DATA_INTER_WIDTH*0];
 	end
 
 
 //Step2----Add Bias
 	reg             step2_valid;
-	reg [23:0]      step2_out[7:0];
+	//reg [23:0]      step2_out[7:0];
+	reg [`DATA_INTER_WIDTH-1:0]      step2_out[7:0];
 
 	always @ (posedge clk) begin
 		step2_valid <= step1_valid;
-		step2_out[0] <= switch_bias? step1_out[0] + bias_dout[24*1-1 : 24*0] : step1_out[0];
-		step2_out[1] <= switch_bias? step1_out[1] + bias_dout[24*2-1 : 24*1] : step1_out[1];
-		step2_out[2] <= switch_bias? step1_out[2] + bias_dout[24*3-1 : 24*2] : step1_out[2];
-		step2_out[3] <= switch_bias? step1_out[3] + bias_dout[24*4-1 : 24*3] : step1_out[3];
-		step2_out[4] <= switch_bias? step1_out[4] + bias_dout[24*5-1 : 24*4] : step1_out[4];
-		step2_out[5] <= switch_bias? step1_out[5] + bias_dout[24*6-1 : 24*5] : step1_out[5];
-		step2_out[6] <= switch_bias? step1_out[6] + bias_dout[24*7-1 : 24*6] : step1_out[6];
-		step2_out[7] <= switch_bias? step1_out[7] + bias_dout[24*8-1 : 24*7] : step1_out[7];
+		//step2_out[0] <= switch_bias? step1_out[0] + bias_dout[24*1-1 : 24*0] : step1_out[0];
+		//step2_out[1] <= switch_bias? step1_out[1] + bias_dout[24*2-1 : 24*1] : step1_out[1];
+		//step2_out[2] <= switch_bias? step1_out[2] + bias_dout[24*3-1 : 24*2] : step1_out[2];
+		//step2_out[3] <= switch_bias? step1_out[3] + bias_dout[24*4-1 : 24*3] : step1_out[3];
+		//step2_out[4] <= switch_bias? step1_out[4] + bias_dout[24*5-1 : 24*4] : step1_out[4];
+		//step2_out[5] <= switch_bias? step1_out[5] + bias_dout[24*6-1 : 24*5] : step1_out[5];
+		//step2_out[6] <= switch_bias? step1_out[6] + bias_dout[24*7-1 : 24*6] : step1_out[6];
+		//step2_out[7] <= switch_bias? step1_out[7] + bias_dout[24*8-1 : 24*7] : step1_out[7];
+		step2_out[0] <= switch_bias ?
+			step1_out[0] + bias_dout[`DATA_INTER_WIDTH*1-1: `DATA_INTER_WIDTH*0]: step1_out[0];
+		step2_out[1] <= switch_bias ?
+			step1_out[1] + bias_dout[`DATA_INTER_WIDTH*2-1: `DATA_INTER_WIDTH*1]: step1_out[1];
+		step2_out[2] <= switch_bias ?
+			step1_out[2] + bias_dout[`DATA_INTER_WIDTH*3-1: `DATA_INTER_WIDTH*2]: step1_out[2];
+		step2_out[3] <= switch_bias ?
+			step1_out[3] + bias_dout[`DATA_INTER_WIDTH*4-1: `DATA_INTER_WIDTH*3]: step1_out[3];
+		step2_out[4] <= switch_bias ?
+			step1_out[4] + bias_dout[`DATA_INTER_WIDTH*5-1: `DATA_INTER_WIDTH*4]: step1_out[4];
+		step2_out[5] <= switch_bias ?
+			step1_out[5] + bias_dout[`DATA_INTER_WIDTH*6-1: `DATA_INTER_WIDTH*5]: step1_out[5];
+		step2_out[6] <= switch_bias ?
+			step1_out[6] + bias_dout[`DATA_INTER_WIDTH*7-1: `DATA_INTER_WIDTH*6]: step1_out[6];
+		step2_out[7] <= switch_bias ?
+			step1_out[7] + bias_dout[`DATA_INTER_WIDTH*8-1: `DATA_INTER_WIDTH*7]: step1_out[7];
 	end
 
 
 //Step3----Relu
 	reg         step3_valid;
-	reg [23:0]  step3_out[7:0]; 
+	//reg [23:0]  step3_out[7:0];
+	reg [`DATA_INTER_WIDTH-1:0]  step3_out[7:0];
 
 	always @ (posedge clk) begin
 		step3_valid <= step2_valid;
@@ -380,10 +409,12 @@ module post_process (
 	generate
 		for(i=0;i<8;i=i+1) begin: step3_data
 			always @ (posedge clk) begin
-				if(step2_out[i][23])begin
+				//if(step2_out[i][23])begin
+				if(step2_out[i][`DATA_INTER_WIDTH-1])begin
 					step3_out[i] <=
 						switch_relu ?
-						( relumode ? ({6'h3f,step2_out[i][23:6]}) : 0 )
+						//( relumode ? ({6'h3f,step2_out[i][23:6]}) : 0 )
+						( relumode ? ({6'h3f,step2_out[i][`DATA_INTER_WIDTH-1:6]}) : 0 )
 						: step2_out[i];
 				end
 				else begin
@@ -396,7 +427,8 @@ module post_process (
 
 //Step4----Scale
 	reg         step4_valid;
-	reg [23:0]  step4_out[7:0]; 
+	//reg [23:0]  step4_out[7:0];
+	reg [`DATA_INTER_WIDTH-1:0]  step4_out[7:0];
 	wire        step4_mask;
 
 	data_delay #(
@@ -427,14 +459,22 @@ module post_process (
 	wire [15:0] step5_out[7:0];
 
 	assign step5_valid    = step4_valid;
-	assign step5_out[0]   = {{4{step4_out[0][19]}},step4_out[0][19:8]};
-	assign step5_out[1]   = {{4{step4_out[1][19]}},step4_out[1][19:8]};
-	assign step5_out[2]   = {{4{step4_out[2][19]}},step4_out[2][19:8]};
-	assign step5_out[3]   = {{4{step4_out[3][19]}},step4_out[3][19:8]};
-	assign step5_out[4]   = {{4{step4_out[4][19]}},step4_out[4][19:8]};
-	assign step5_out[5]   = {{4{step4_out[5][19]}},step4_out[5][19:8]};
-	assign step5_out[6]   = {{4{step4_out[6][19]}},step4_out[6][19:8]};
-	assign step5_out[7]   = {{4{step4_out[7][19]}},step4_out[7][19:8]};
+	//assign step5_out[0]   = {{4{step4_out[0][19]}},step4_out[0][19:8]};
+	//assign step5_out[1]   = {{4{step4_out[1][19]}},step4_out[1][19:8]};
+	//assign step5_out[2]   = {{4{step4_out[2][19]}},step4_out[2][19:8]};
+	//assign step5_out[3]   = {{4{step4_out[3][19]}},step4_out[3][19:8]};
+	//assign step5_out[4]   = {{4{step4_out[4][19]}},step4_out[4][19:8]};
+	//assign step5_out[5]   = {{4{step4_out[5][19]}},step4_out[5][19:8]};
+	//assign step5_out[6]   = {{4{step4_out[6][19]}},step4_out[6][19:8]};
+	//assign step5_out[7]   = {{4{step4_out[7][19]}},step4_out[7][19:8]};
+	assign step5_out[0]   = {{8{step4_out[0][11]}},step4_out[0][11:4]};
+	assign step5_out[1]   = {{8{step4_out[1][11]}},step4_out[1][11:4]};
+	assign step5_out[2]   = {{8{step4_out[2][11]}},step4_out[2][11:4]};
+	assign step5_out[3]   = {{8{step4_out[3][11]}},step4_out[3][11:4]};
+	assign step5_out[4]   = {{8{step4_out[4][11]}},step4_out[4][11:4]};
+	assign step5_out[5]   = {{8{step4_out[5][11]}},step4_out[5][11:4]};
+	assign step5_out[6]   = {{8{step4_out[6][11]}},step4_out[6][11:4]};
+	assign step5_out[7]   = {{8{step4_out[7][11]}},step4_out[7][11:4]};
 
 
 	fifo_w128_d512_fwft fifo_w128_d512_fwft (

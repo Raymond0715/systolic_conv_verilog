@@ -26,12 +26,21 @@
     `define O_CH             256
 
     `define IMG_LEN  256*56*56
+<<<<<<< HEAD
     `define IMG_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/TestData/56_256/img_56_256_process_bus128.txt"
 
     `define WEI_LEN  256*256*9+256*2
     `define WEI_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/TestData/56_256/weight_bias_56_256_process_bus128.txt"
 
     `define REORDER_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/RefTxt/txt_56/Conv_sum_all_ref.txt"
+=======
+    `define IMG_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/56_256_shift/img_56_256_process_shift_sim.txt"
+
+    `define WEI_LEN  256*256*9+256*2
+    `define WEI_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/56_256_shift/bias_weight_56_256_shift_sim.txt"
+
+    `define REORDER_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/56_256_shift/Conv_sum_all_ref.txt"
+>>>>>>> b4677bc773fb1845b5aa07dc48bba2d72cd432f4
     `define REORDER_LEN 56*57*256/64
 
     // `define BIAS_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/PostTestData/RefTxt/56_256/Bias.txt"
@@ -46,15 +55,26 @@
     `define O_CH             512
 
     `define IMG_LEN  512*28*28
+<<<<<<< HEAD
     `define IMG_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/TestData/28_512/img_28_512_process_bus128.txt"
 
     `define WEI_LEN  512*512*9+512*2
     `define WEI_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/TestData/28_512/weight_bias_28_512_process_bus128.txt"
+=======
+    `define IMG_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/28_512/img_28_512_process_bus128.txt"
+
+    `define WEI_LEN  512*512*9+512*2
+    `define WEI_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/28_512/weight_bias_28_512_process_bus128.txt"
+>>>>>>> b4677bc773fb1845b5aa07dc48bba2d72cd432f4
 
     // `define BIAS_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/PostTestData/RefTxt/28_512/Bias.txt"
     // `define POST_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/PostTestData/RefTxt/28_512/Reorder_ref.txt"
 
+<<<<<<< HEAD
     `define REORDER_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/RefTxt/txt_28/Conv_sum_all_ref.txt"
+=======
+    `define REORDER_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/28_512/Conv_sum_all_ref.txt"
+>>>>>>> b4677bc773fb1845b5aa07dc48bba2d72cd432f4
     `define REORDER_LEN 28*29*512/64
 `endif
 
@@ -66,12 +86,21 @@
     `define O_CH             64
 
     `define IMG_LEN  64*224*224
+<<<<<<< HEAD
     `define IMG_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/TestData/224_64/img_224_64_process_bus128.txt"
 
     `define WEI_LEN  64*64*9+64*2
     `define WEI_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/TestData/224_64/weight_bias_224_64_process_bus128.txt"
 
     `define REORDER_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/RefTxt/txt_224/Conv_sum_all_ref.txt"
+=======
+    `define IMG_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/224_64/img_224_64_process_bus128.txt"
+
+    `define WEI_LEN  64*64*9+64*2
+    `define WEI_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/224_64/weight_bias_224_64_process_bus128.txt"
+
+    `define REORDER_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/224_64/Conv_sum_all_ref.txt"
+>>>>>>> b4677bc773fb1845b5aa07dc48bba2d72cd432f4
     `define REORDER_LEN 224*225*64/64
 `endif
 
@@ -83,12 +112,21 @@
     `define O_CH             4096
 
     `define IMG_LEN  1*1*4096
+<<<<<<< HEAD
     `define IMG_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/TestData/1_4096/img_1_4096_process_bus128.txt"
 
     `define WEI_LEN  4096*4096*1+4096*2
     `define WEI_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/TestData/1_4096/weight_bias_1_4096_process_bus128.txt"
 
     `define REORDER_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/RefTxt/txt_1/Conv_sum_all_ref.txt"
+=======
+    `define IMG_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/1_4096/img_1_4096_process_bus128.txt"
+
+    `define WEI_LEN  4096*4096*1+4096*2
+    `define WEI_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/1_4096/weight_bias_1_4096_process_bus128.txt"
+
+    `define REORDER_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/1_4096/Conv_sum_all_ref.txt"
+>>>>>>> b4677bc773fb1845b5aa07dc48bba2d72cd432f4
     `define REORDER_LEN 1*1*4096/64
 `endif
 
@@ -100,12 +138,21 @@
     `define O_CH             256
 
     `define IMG_LEN  13*13*1024
+<<<<<<< HEAD
     `define IMG_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/TestData/13_1024_256/img_13_1024_process_bus128.txt"
 
     `define WEI_LEN  1024*256*1+256*2
     `define WEI_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/TestData/13_1024_256/weight_bias_13_1024_256_process_bus128.txt"
 
     `define REORDER_DIR "/home/dlisa/Desktop/Project/systolic_conv_v/mat/RefTxt/txt_13/Conv_sum_all_ref.txt"
+=======
+    `define IMG_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/13_1024_256/img_13_1024_process_bus128.txt"
+
+    `define WEI_LEN  1024*256*1+256*2
+    `define WEI_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/13_1024_256/weight_bias_13_1024_256_process_bus128.txt"
+
+    `define REORDER_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/13_1024_256/Conv_sum_all_ref.txt"
+>>>>>>> b4677bc773fb1845b5aa07dc48bba2d72cd432f4
     `define REORDER_LEN 13*13*256/64
 `endif
 

@@ -1,5 +1,7 @@
 `include "SIM_CTRL.vh"
 
+`define ACT_BOUND               256 // 2^`DATA_ACT_WIDTH
+
 // Activation value.
 `define DATA_ACT_WIDTH          8
 `define BUS128_DATA_ACT_NUM     16
@@ -13,19 +15,18 @@
 `define BUS128_DATA_INTER_NUM   8
 
 // Mult LANTANCY
-// `define CONV_OP_LANTANCY 3
-`define CONV_OP_LANTANCY 0
-`define DIV_LANTANCY  51 //this should be lantency in vivado plus 1
+//`define CONV_OP_LANTANCY        3
+`define CONV_OP_LANTANCY        0
+`define DIV_LANTANCY            51 //this should be lantency in vivado plus 1
 
 // PS CONFIG
-`define PS_CONFIG_LEN 11
+`define PS_CONFIG_LEN           11
 
-`define CONV_GROUP_NUM 64
-`define WEIGHT_DEPTH 589824
-`define ACT_DEPTH 401408
-`define WEIGHT_RAMf_WIDTH 2304
-`define DDR_OFFSET 32'h8000_0000
-
+`define CONV_GROUP_NUM          64
+`define WEIGHT_DEPTH            589824
+`define ACT_DEPTH               401408
+`define WEIGHT_RAMf_WIDTH       2304
+`define DDR_OFFSET              32'h8000_0000
 
 //PINGPONG
 `define PING                    0

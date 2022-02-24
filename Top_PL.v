@@ -184,8 +184,122 @@ module Top_PL # (
 `ifdef SIM
 	initial begin
 		#5000
-		$display("Scene: %dx%dx%dx%d",`IMG_H,`IMG_W,`I_CH,`O_CH);
+		$display("Scene: %dx%dx%dx%dx%d",`IMG_H,`IMG_W,`I_CH,`O_CH, CONV_NUM);
 	end
+
+	`ifdef SCENE1
+		reg [0:0]  workmode  = 0;
+		reg [0:0]  act_source = 1;
+		reg [0:0]  weight_bias_source = 1 ;
+		reg [0:0]  relumode  =1;
+		reg [0:0]  switch_relu =1 ;
+		reg [0:0]  switch_bias =1 ;
+		reg [0:0]  switch_sampling =0 ;
+		reg [0:0]  switch_bitintercept=1 ;
+		reg [8:0]  img_w=56;
+		reg [11:0] i_ch=256;
+		reg [11:0] o_ch=256;
+		reg [31:0] act_waddr = 32'h0;
+		reg [31:0] act_raddr = 32'h0;
+		reg [31:0] weight_waddr = 32'h100_0000;
+		reg [31:0] weight_raddr = 32'h100_0000;
+		reg [31:0] weight_wlen  = 256*256*9;
+		reg [31:0] bias_waddr = 32'h200_0000;
+		reg [31:0] bias_raddr = 32'h200_0000;
+		reg [31:0] bias_wlen = 256;
+		reg [31:0] ddr_write_addr = 32'h300_0000;
+	`endif
+
+	`ifdef SCENE5
+		reg [0:0]  workmode  = 1; //-----
+		reg [0:0]  act_source = 1;
+		reg [0:0]  weight_bias_source = 1 ;
+		reg [0:0]  relumode  =1;
+		reg [0:0]  switch_relu =1 ;
+		reg [0:0]  switch_bias =1 ;
+		reg [0:0]  switch_sampling =0 ;
+		reg [0:0]  switch_bitintercept=1 ;
+		reg [8:0]  img_w=13; //-----
+		reg [11:0] i_ch=1024; //-----
+		reg [11:0] o_ch=256; //-----
+		reg [31:0] act_waddr = 32'h0;
+		reg [31:0] act_raddr = 32'h0;
+		reg [31:0] weight_waddr = 32'h100_0000;
+		reg [31:0] weight_raddr = 32'h100_0000;
+		reg [31:0] weight_wlen  = 256*1024*1; //-----
+		reg [31:0] bias_waddr = 32'h200_0000;
+		reg [31:0] bias_raddr = 32'h200_0000;
+		reg [31:0] bias_wlen = 256; //-----
+		reg [31:0] ddr_write_addr = 32'h300_0000;
+	`endif
+	
+	reg [31:0] s_axis_config_tdata_sim;
+	reg s_axis_config_tvalid_sim = 0;
+
+	reg [4:0] config_cnt = 0 ;
+
+
+	reg continue_sim = 0 ;
+
+	initial begin
+		wait (rst_n);
+		wait (s_axis_config_tready);
+		$display("[SIM][Top_PL.v] Begin configtask.");
+		configtask({img_w,switch_bitintercept,switch_sampling,switch_bias,switch_relu,relumode,weight_bias_source,act_source,workmode});
+		configtask({o_ch,i_ch}      );
+		configtask(act_waddr        );
+		configtask(act_raddr        );
+		configtask(weight_waddr     );
+		configtask(weight_raddr     );
+		configtask(weight_wlen      );
+		configtask(bias_waddr       );
+		configtask(bias_raddr       );
+		configtask(bias_wlen        );
+		configtask(ddr_write_addr   );
+
+		// one cycle
+		$display("[SIM][Top_PL.v] One cycle.");
+		act_raddr <= 32'h300_0000;
+		act_source<= 0;
+		ddr_write_addr <= 32'h500_0000;
+		relumode <= 0;
+		switch_sampling <= 1 ;
+		weight_bias_source <= 0 ;
+
+		wait (s_axis_config_tready);
+		configtask({img_w,switch_bitintercept,switch_sampling,switch_bias,switch_relu,relumode,weight_bias_source,act_source,workmode});
+		configtask({o_ch,i_ch}      );
+		configtask(act_waddr        );
+		configtask(act_raddr        );
+		configtask(weight_waddr     );
+		configtask(weight_raddr     );
+		configtask(weight_wlen      );
+		configtask(bias_waddr       );
+		configtask(bias_raddr       );
+		configtask(bias_wlen        );
+		configtask(ddr_write_addr   );
+		$display("[SIM][Top_PL.v] Finish configtask.");
+
+		wait (s_axis_config_tready);
+
+		$stop;
+	end
+
+	task configtask;
+		input [31:0] data ;
+		begin
+			s_axis_config_tvalid_sim <= 0 ;
+			#100 @(posedge clk)begin
+				s_axis_config_tdata_sim  <= data;
+				s_axis_config_tvalid_sim <= 1 ;
+			end
+			@(posedge clk)s_axis_config_tvalid_sim <= 0 ;
+			#100 @(posedge clk)begin
+				s_axis_config_tdata_sim  <= 0;
+				s_axis_config_tvalid_sim <= 0 ;
+			end
+		end
+	endtask
 `endif
 
 	/********************************/
@@ -212,9 +326,15 @@ module Top_PL # (
 		.clk                        (clk                        ),
 		.rst_n                      (rst_n                      ),
 
-		.s_axis_config_tvalid       (s_axis_config_tvalid       ),
+		`ifndef SIM
+			.s_axis_config_tvalid     (s_axis_config_tvalid       ),
+			.s_axis_config_tdata      (s_axis_config_tdata        ),
+		`else
+			.s_axis_config_tvalid     (s_axis_config_tvalid_sim   ),
+			.s_axis_config_tdata      (s_axis_config_tdata_sim    ),
+		`endif
+
 		.s_axis_config_tready       (s_axis_config_tready       ),
-		.s_axis_config_tdata        (s_axis_config_tdata        ),
 
 		.m_axis_wbconfig_tvalid     (m_axis_wbconfig_tvalid     ),
 		.m_axis_wbconfig_tready     (m_axis_wbconfig_tready     ),
@@ -591,7 +711,9 @@ module Top_PL # (
 				.act_valid     ( m_act_valid                  ),
 				.mode_1_1      ( mode_1_1                     ),
 
-				.weight_data   ( m_weight_data[48*i+47 :48*i] ),
+				//.weight_data   ( m_weight_data[48*i+47 :48*i] ),
+				.weight_data   ( m_weight_data[4*`DATA_WEIGHT_WIDTH*i+4*`DATA_WEIGHT_WIDTH-1
+					:4*`DATA_WEIGHT_WIDTH*i] ),
 				.weight_valid  ( m_weight_valid               ),
 				.weight_switch ( weight_switch                ),
 				.partial_rstn  ( partial_rstn                 ),
@@ -618,7 +740,7 @@ module Top_PL # (
 
 		.s_config_valid  (m_axis_sumconfig_tvalid  ),
 		.s_config_ready  (m_axis_sumconfig_tready  ),
-		.s_config_data   (m_axis_sumconfig_tdata   ), 
+		.s_config_data   (m_axis_sumconfig_tdata   ),
 
 		.inter_data_1    (conv_data_1  ),
 		.inter_data_2    (conv_data_2  ),
@@ -675,10 +797,11 @@ module Top_PL # (
 		.rst_n            (rst_n          ),
 
 	`ifdef SIM
-		.sum_valid          (sum_valid      ),
-		.sum_data           ({sum_data[64*24-1:56*24],m_axis_rosim_tdata[56*24-1:0]}),
-		//.sum_data           (sum_data     ),
-		.ro_busy            (ro_busy      ),
+		.sum_valid        (sum_valid      ),
+		.sum_data         ({sum_data[64*`DATA_INTER_WIDTH-1:56*`DATA_INTER_WIDTH],
+			m_axis_rosim_tdata[56*`DATA_INTER_WIDTH-1:0]}),
+		//.sum_data         (sum_data     ),
+		.ro_busy          (ro_busy      ),
 	`else
 		.sum_valid        (sum_valid    ),
 		.sum_data         (sum_data     ),
@@ -704,11 +827,11 @@ module Top_PL # (
 	//Post Process
 	/********************************/
 	wire [127:0] post_data;
-	wire         post_valid, post_ready_ddr, post_ready_output;
+	wire         post_valid, post_ready, post_ready_ddr, post_ready_output;
 
 		`ifdef POST_DATAGEN
 			data_gen  #(
-				.Width                (192 ),
+				.Width                (`DATA_INTER_WIDTH * 8 ),
 				.CONFIG_LEN           (`IMG_H *`IMG_W * `O_CH /8 ),
 				.FRAME_NUM            (`FRAME_NUM    ),
 				.Data_Path            (`POST_DIR     )

@@ -60,7 +60,7 @@ module reorder (
 	input           [`DATA_INTER_WIDTH*64-1 :0] sum_data        ,
 	output                                      ro_busy         ,
 
-	output          [191 :0]                    reorder_data    ,
+	output          [`DATA_INTER_WIDTH*8-1 :0]  reorder_data    ,
 	output                                      reorder_valid   ,
 	input                                       reorder_ready   ,
 
@@ -71,15 +71,16 @@ module reorder (
 // Xlinx IP requests data width less than 1024, so here seperate
 
 	wire [7:0] fifo_valid, fifo_prog_full;
-	wire [191:0] fifo_din  [7:0];
-	wire [191:0] fifo_dout [7:0];
+	wire [`DATA_INTER_WIDTH*8-1:0] fifo_din  [7:0];
+	wire [`DATA_INTER_WIDTH*8-1:0] fifo_dout [7:0];
 	reg  [7:0] fifo_rd_en;
 
 	genvar i ;
 	generate
 		for (i=0; i<8; i=i+1) begin:fifo_gen
 
-			reorder_fifo_w192_d1k_fwft fifo (
+			//reorder_fifo_w192_d1k_fwft fifo (
+			reorder_fifo_w128_d1k_fwft fifo (
 				.clk(clk),                                // input wire clk
 				.srst(~rst_n),                            // input wire srst
 				.din(fifo_din[i]),                        // input wire [95 : 0] din
@@ -95,14 +96,14 @@ module reorder (
 			);
 
 			assign fifo_din[i] = {
-				sum_data[24*(64-i*8-0)-1/*-13*/ :24*(64-i*8-1)],
-				sum_data[24*(64-i*8-1)-1/*-13*/ :24*(64-i*8-2)],
-				sum_data[24*(64-i*8-2)-1/*-13*/ :24*(64-i*8-3)],
-				sum_data[24*(64-i*8-3)-1/*-13*/ :24*(64-i*8-4)],
-				sum_data[24*(64-i*8-4)-1/*-13*/ :24*(64-i*8-5)],
-				sum_data[24*(64-i*8-5)-1/*-13*/ :24*(64-i*8-6)],
-				sum_data[24*(64-i*8-6)-1/*-13*/ :24*(64-i*8-7)],
-				sum_data[24*(64-i*8-7)-1/*-13*/ :24*(64-i*8-8)]  };
+				sum_data[`DATA_INTER_WIDTH*(64-i*8-0)-1/*-13*/ :`DATA_INTER_WIDTH*(64-i*8-1)],
+				sum_data[`DATA_INTER_WIDTH*(64-i*8-1)-1/*-13*/ :`DATA_INTER_WIDTH*(64-i*8-2)],
+				sum_data[`DATA_INTER_WIDTH*(64-i*8-2)-1/*-13*/ :`DATA_INTER_WIDTH*(64-i*8-3)],
+				sum_data[`DATA_INTER_WIDTH*(64-i*8-3)-1/*-13*/ :`DATA_INTER_WIDTH*(64-i*8-4)],
+				sum_data[`DATA_INTER_WIDTH*(64-i*8-4)-1/*-13*/ :`DATA_INTER_WIDTH*(64-i*8-5)],
+				sum_data[`DATA_INTER_WIDTH*(64-i*8-5)-1/*-13*/ :`DATA_INTER_WIDTH*(64-i*8-6)],
+				sum_data[`DATA_INTER_WIDTH*(64-i*8-6)-1/*-13*/ :`DATA_INTER_WIDTH*(64-i*8-7)],
+				sum_data[`DATA_INTER_WIDTH*(64-i*8-7)-1/*-13*/ :`DATA_INTER_WIDTH*(64-i*8-8)]  };
 		end
 	endgenerate
 
