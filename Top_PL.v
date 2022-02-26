@@ -1022,10 +1022,12 @@ module Top_PL # (
 				.clk(clk),
 				.probe0({status_config, status_wbs, status_act_manager, status_wm, status_dmux, status_wmux,
 					status_sync, status_sum, status_ro}),
-				//.probe1({status_post, status_dmw, sum_data[23:0]}),
-				.probe1({status_post, sum_data[23:0]}),
-				.probe2({sum_valid, sum_data[47:24]}),
-				.probe3({sum_data[24*64-1:24*63]})
+				//.probe1({status_post, sum_data[23:0]}),
+				//.probe2({sum_valid, sum_data[47:24]}),
+				//.probe3({sum_data[24*64-1:24*63]})
+				.probe1({status_post, sum_data[`DATA_INTER_WIDTH-1:0]}),
+				.probe2({sum_valid, sum_data[`DATA_INTER_WIDTH*2-1:`DATA_INTER_WIDTH]}),
+				.probe3({sum_data[`DATA_INTER_WIDTH*64-1:`DATA_INTER_WIDTH*63]})
 			);
 		`endif
 	`endif

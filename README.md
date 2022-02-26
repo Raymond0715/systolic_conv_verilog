@@ -49,11 +49,13 @@ VCS: 专业仿真工具
 
 - weight 写 DDR 和读 DDR 尺寸一致，不能设置成不同的尺寸
 
-- All bias at the begining followed by all weights.
+- 截位宽
 
-- Configuration instruction in config.v
+  - 溢出
 
-- 目前还没有考虑截位宽时的溢出问题。
+  - 动态截位宽
+
+- 添加累加溢出的判断
 
 - 去掉 config.v，将配置过程在PS侧完成
 
@@ -62,7 +64,7 @@ VCS: 专业仿真工具
 - 感觉 config.v 中配置状态跳转和每个模块中配置状态逻辑有缺陷，当配置信息不连续时
 极端情况下可能会有逻辑问题。
 
-- FIFO IP 的配置中, Programmable Flags 中 Full Threshold Assert Value 有什么影响
+- vivado 的 FIFO IP 的配置中, Programmable Flags 中 Full Threshold Assert Value 有什么影响
 
 ## 1.3 FPGA 设计
 
