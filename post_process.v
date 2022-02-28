@@ -457,25 +457,30 @@ module post_process (
 //Step5----Change Bit Width
 	wire step5_valid;
 	wire [15:0] step5_out[7:0];
+	wire [`DATA_ACT_WIDTH-1:0]  step_out_trunc[7:0];
 
 	assign step5_valid    = step4_valid;
-	//assign step5_out[0]   = {{4{step4_out[0][19]}},step4_out[0][19:8]};
-	//assign step5_out[1]   = {{4{step4_out[1][19]}},step4_out[1][19:8]};
-	//assign step5_out[2]   = {{4{step4_out[2][19]}},step4_out[2][19:8]};
-	//assign step5_out[3]   = {{4{step4_out[3][19]}},step4_out[3][19:8]};
-	//assign step5_out[4]   = {{4{step4_out[4][19]}},step4_out[4][19:8]};
-	//assign step5_out[5]   = {{4{step4_out[5][19]}},step4_out[5][19:8]};
-	//assign step5_out[6]   = {{4{step4_out[6][19]}},step4_out[6][19:8]};
-	//assign step5_out[7]   = {{4{step4_out[7][19]}},step4_out[7][19:8]};
-	assign step5_out[0]   = {{8{step4_out[0][11]}},step4_out[0][11:4]};
-	assign step5_out[1]   = {{8{step4_out[1][11]}},step4_out[1][11:4]};
-	assign step5_out[2]   = {{8{step4_out[2][11]}},step4_out[2][11:4]};
-	assign step5_out[3]   = {{8{step4_out[3][11]}},step4_out[3][11:4]};
-	assign step5_out[4]   = {{8{step4_out[4][11]}},step4_out[4][11:4]};
-	assign step5_out[5]   = {{8{step4_out[5][11]}},step4_out[5][11:4]};
-	assign step5_out[6]   = {{8{step4_out[6][11]}},step4_out[6][11:4]};
-	assign step5_out[7]   = {{8{step4_out[7][11]}},step4_out[7][11:4]};
 
+	generate
+		for (i = 0; i < 8; i = i + 1) begin:trunc_gen
+			trunc trunc(
+				.din  (step4_out[i]),
+				.dout (step_out_trunc[i])
+			);
+
+			assign step5_out[i] = {{8{step_out_trunc[i][`DATA_ACT_WIDTH-1]}},
+				step_out_trunc[i][`DATA_ACT_WIDTH-1:0]};
+		end
+	endgenerate
+
+	//assign step5_out[0]   = {{8{step4_out[0][11]}},step4_out[0][11:4]};
+	//assign step5_out[1]   = {{8{step4_out[1][11]}},step4_out[1][11:4]};
+	//assign step5_out[2]   = {{8{step4_out[2][11]}},step4_out[2][11:4]};
+	//assign step5_out[3]   = {{8{step4_out[3][11]}},step4_out[3][11:4]};
+	//assign step5_out[4]   = {{8{step4_out[4][11]}},step4_out[4][11:4]};
+	//assign step5_out[5]   = {{8{step4_out[5][11]}},step4_out[5][11:4]};
+	//assign step5_out[6]   = {{8{step4_out[6][11]}},step4_out[6][11:4]};
+	//assign step5_out[7]   = {{8{step4_out[7][11]}},step4_out[7][11:4]};
 
 	fifo_w128_d512_fwft fifo_w128_d512_fwft (
 		.clk(clk),                // input wire clk

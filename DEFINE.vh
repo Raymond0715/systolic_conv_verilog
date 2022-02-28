@@ -19,6 +19,12 @@
 `define CONV_OP_LANTANCY        0
 `define DIV_LANTANCY            51 //this should be lantency in vivado plus 1
 
+`define TRUNC_UP_BIT            10
+`define TRUNC_DOWN_BIT          4
+
+`define POSITIVE_UP_BOUND       7'h7F
+`define NEGATIVE_DOWN_BOUND     7'h00
+
 // PS CONFIG
 `define PS_CONFIG_LEN           11
 
