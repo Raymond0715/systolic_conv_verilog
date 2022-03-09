@@ -38,6 +38,8 @@ module weight_mux (
 	reg        r_weight_ready;
 	reg [23:0] cycle_cnt ;
 	reg        out_valid_ctrl;
+	reg        init_weight;
+	reg        s_config_valid_1, s_config_valid_2;
 
 	reg  [`DATA_WEIGHT_WIDTH-1:0] fifo_din[63:0];
 	wire [`DATA_WEIGHT_WIDTH-1:0] fifo_dout[63:0];
@@ -54,7 +56,7 @@ module weight_mux (
 		if (s_config_valid & s_config_ready)begin
 			config_cnt <= config_cnt + 1'b1 ;
 			case(config_cnt)
-				0: config_cycle_cnt <= s_config_data[23:0];
+				0: {init_weight, config_cycle_cnt} <= s_config_data[24:0];
 			endcase
 		end
 		else config_cnt <= 0 ;
@@ -71,11 +73,13 @@ module weight_mux (
 
 	always @ (*) begin
 		case(c_state)
-			IDLE:if(s_config_valid & s_config_ready & (config_cnt == 0)) n_state = CYCLE_CONV_GROUP;
+			IDLE:
+				if (s_config_valid_2 && s_config_ready && config_cnt == 0 && ~init_weight)
+					n_state = CYCLE_CONV_GROUP;
 				else n_state = IDLE;
-			CYCLE_CONV_GROUP: if(conv_group_cnt == `CONV_GROUP_NUM) n_state = CYCLE_CONV_3_3;
+			CYCLE_CONV_GROUP: if (conv_group_cnt == `CONV_GROUP_NUM) n_state = CYCLE_CONV_3_3;
 				else n_state = CYCLE_CONV_GROUP;
-			CYCLE_CONV_3_3: if(cycle_cnt < config_cycle_cnt) n_state = CYCLE_CONV_GROUP; 
+			CYCLE_CONV_3_3: if (cycle_cnt < config_cycle_cnt) n_state = CYCLE_CONV_GROUP; 
 				else n_state = END ;
 			END : n_state = IDLE;
 			default:n_state = IDLE;
@@ -90,6 +94,8 @@ module weight_mux (
 				r_weight_ready <= 1'b0 ;
 				cycle_cnt      <= 24'd0;
 				out_valid_ctrl <= 1'b0;
+				s_config_valid_1 <= s_config_valid;
+				s_config_valid_2 <= s_config_valid_1;
 
 				fifo_we[0] <= 1'b0 ;
 				fifo_we[1] <= 1'b0 ;

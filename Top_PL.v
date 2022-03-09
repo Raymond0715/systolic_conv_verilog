@@ -211,33 +211,57 @@ module Top_PL # (
 	`endif
 
 	`ifdef SCENE5
-		reg [0:0]  workmode  = 1; //-----
+		reg [0:0]  workmode = 1;
 		reg [0:0]  act_source = 1;
-		reg [0:0]  weight_bias_source = 1 ;
-		reg [0:0]  relumode  =1;
-		reg [0:0]  switch_relu =1 ;
-		reg [0:0]  switch_bias =1 ;
-		reg [0:0]  switch_sampling =0 ;
-		reg [0:0]  switch_bitintercept=1 ;
-		reg [8:0]  img_w=13; //-----
-		reg [11:0] i_ch=1024; //-----
-		reg [11:0] o_ch=256; //-----
+		reg [0:0]  weight_bias_source = 1;
+		reg [0:0]  relumode = 1;
+		reg [0:0]  switch_relu = 1;
+		reg [0:0]  switch_bias = 1;
+		reg [0:0]  switch_sampling = 0;
+		reg [0:0]  switch_bitintercept = 1;
+		reg [8:0]  img_w = 13;
+		reg [11:0] i_ch = 1024;
+		reg [11:0] o_ch = 256;
 		reg [31:0] act_waddr = 32'h0;
 		reg [31:0] act_raddr = 32'h0;
 		reg [31:0] weight_waddr = 32'h100_0000;
 		reg [31:0] weight_raddr = 32'h100_0000;
-		reg [31:0] weight_wlen  = 256*1024*1; //-----
+		reg [31:0] weight_wlen  = 256*1024*1;
 		reg [31:0] bias_waddr = 32'h200_0000;
 		reg [31:0] bias_raddr = 32'h200_0000;
-		reg [31:0] bias_wlen = 256; //-----
+		reg [31:0] bias_wlen = 256;
 		reg [31:0] ddr_write_addr = 32'h300_0000;
 	`endif
-	
+
+	`ifdef SCENE6
+		reg        workmode = 0;
+		reg        act_source = 1;
+		reg        weight_bias_source = 1;
+		reg        relumode = 1;
+		reg        switch_relu = 0;
+		reg        switch_bias = 0;
+		reg        switch_sampling = 0;
+		reg        switch_bitintercept = 0;
+		reg [8:0]  img_w = 0;
+		reg        output_ps = 0;
+		reg        init_weight = 1;
+		reg [11:0] i_ch = 0;
+		reg [11:0] o_ch = 0;
+		reg [31:0] act_waddr = 32'h0;
+		reg [31:0] act_raddr = 32'h0;
+		reg [31:0] weight_waddr = 32'h100_0000;
+		reg [31:0] weight_raddr = 32'h100_0000;
+		reg [31:0] weight_wlen  = 27648;
+		reg [31:0] bias_waddr = 32'h200_0000;
+		reg [31:0] bias_raddr = 32'h200_0000;
+		reg [31:0] bias_wlen = 128;
+		reg [31:0] ddr_write_addr = 32'h300_0000;
+	`endif
+
 	reg [31:0] s_axis_config_tdata_sim;
 	reg s_axis_config_tvalid_sim = 0;
 
 	reg [4:0] config_cnt = 0 ;
-
 
 	reg continue_sim = 0 ;
 
@@ -245,8 +269,9 @@ module Top_PL # (
 		wait (rst_n);
 		wait (s_axis_config_tready);
 		$display("[SIM][Top_PL.v] Begin configtask.");
-		configtask({img_w,switch_bitintercept,switch_sampling,switch_bias,switch_relu,relumode,weight_bias_source,act_source,workmode});
-		configtask({o_ch,i_ch}      );
+		configtask({init_weight, output_ps, img_w, switch_bitintercept, switch_sampling, switch_bias,
+			switch_relu, relumode, weight_bias_source, act_source, workmode});
+		configtask({o_ch, i_ch}      );
 		configtask(act_waddr        );
 		configtask(act_raddr        );
 		configtask(weight_waddr     );
@@ -258,16 +283,34 @@ module Top_PL # (
 		configtask(ddr_write_addr   );
 
 		// one cycle
-		$display("[SIM][Top_PL.v] One cycle.");
-		act_raddr <= 32'h300_0000;
-		act_source<= 0;
-		ddr_write_addr <= 32'h500_0000;
-		relumode <= 0;
-		switch_sampling <= 1 ;
-		weight_bias_source <= 0 ;
+		`ifdef SCENE6
+			$display("[SIM][Top_PL.v] One cycle.");
+
+			workmode            <= 0;
+			act_source          <= 1;
+			weight_bias_source  <= 0;
+			relumode            <= 1;
+			switch_relu         <= 1;
+			switch_bias         <= 1;
+			switch_sampling     <= 1 ;
+			switch_bitintercept <= 0;
+			img_w               <= 208;
+			output_ps           <= 0;
+			init_weight         <= 0;
+			i_ch                <= 16;
+			o_ch                <= 64;
+			act_raddr           <= 32'h0;
+			act_waddr           <= 32'h0;
+			weight_raddr        <= 32'h100_0000;
+			weight_wlen         <= 9216;
+			bias_raddr          <= 32'h200_0000;
+			bias_wlen           <= 64;
+			ddr_write_addr      <= 32'h300_0000;
+		`endif
 
 		wait (s_axis_config_tready);
-		configtask({img_w,switch_bitintercept,switch_sampling,switch_bias,switch_relu,relumode,weight_bias_source,act_source,workmode});
+		configtask({init_weight, output_ps, img_w, switch_bitintercept, switch_sampling, switch_bias,
+			switch_relu, relumode, weight_bias_source, act_source, workmode});
 		configtask({o_ch,i_ch}      );
 		configtask(act_waddr        );
 		configtask(act_raddr        );
@@ -770,7 +813,7 @@ module Top_PL # (
 	wire         reorder_valid, reorder_ready;
 	wire [`DATA_INTER_WIDTH*64-1 :0]  m_axis_rosim_tdata;
 
-	`ifdef SIM
+	`ifdef REORDER_DATAGEN
 
 		data_gen  #(
 			.Width                (`DATA_INTER_WIDTH*64 ),
@@ -796,7 +839,7 @@ module Top_PL # (
 		.clk              (clk            ),
 		.rst_n            (rst_n          ),
 
-	`ifdef SIM
+	`ifdef REORDER_DATAGEN
 		.sum_valid        (sum_valid      ),
 		.sum_data         ({sum_data[64*`DATA_INTER_WIDTH-1:56*`DATA_INTER_WIDTH],
 			m_axis_rosim_tdata[56*`DATA_INTER_WIDTH-1:0]}),
@@ -829,26 +872,26 @@ module Top_PL # (
 	wire [127:0] post_data;
 	wire         post_valid, post_ready, post_ready_ddr, post_ready_output;
 
-		`ifdef POST_DATAGEN
-			data_gen  #(
-				.Width                (`DATA_INTER_WIDTH * 8 ),
-				.CONFIG_LEN           (`IMG_H *`IMG_W * `O_CH /8 ),
-				.FRAME_NUM            (`FRAME_NUM    ),
-				.Data_Path            (`POST_DIR     )
-			)
-			inst_post_gen (
-				.i_sys_clk            (clk           ),
-				.i_sys_rst_n          (rst_n         ),
+	`ifdef POST_DATAGEN
+		data_gen  #(
+			.Width                (`DATA_INTER_WIDTH * 8 ),
+			.CONFIG_LEN           (`IMG_H *`IMG_W * `O_CH /8 ),
+			.FRAME_NUM            (`FRAME_NUM    ),
+			.Data_Path            (`POST_DIR     )
+		)
+		inst_post_gen (
+			.i_sys_clk            (clk           ),
+			.i_sys_rst_n          (rst_n         ),
 
-				.i_start              (R_gen_data    ),
+			.i_start              (R_gen_data    ),
 
-				.O_chan_cha1_ph_tdata (reorder_data  ),
-				.O_chan_ph_tvalid     (reorder_valid ),
-				.O_chan_ph_tlast      (              ),
-				.O_chan_ph_tready     (reorder_ready )
-			);
+			.O_chan_cha1_ph_tdata (reorder_data  ),
+			.O_chan_ph_tvalid     (reorder_valid ),
+			.O_chan_ph_tlast      (              ),
+			.O_chan_ph_tready     (reorder_ready )
+		);
 
-		`endif
+	`endif
 
 	post_process post_process (
 		.clk                      (clk                                ),

@@ -116,9 +116,10 @@ module reorder (
 	reg [11:0] img_w, img_h;
 	reg        mode_1_1;
 	reg [7 :0] w_tile;
-	reg cycle_finish ;
-	reg [2:0] current_fifo ;
-	reg [2:0] config_cnt   ;
+	reg        cycle_finish;
+	reg [2:0]  current_fifo;
+	reg [2:0]  config_cnt;
+	reg        init_weight;
 
 	localparam CONFIG               = 0 ;
 	localparam CYCLE                = 1 ;
@@ -179,15 +180,19 @@ module reorder (
 					end
 
 					case (config_cnt)
-						0: {mode_1_1,img_h,img_w} <= s_config_data ;
+						0: {init_weight, mode_1_1, img_h, img_w} <= s_config_data ;
 						1: begin
 							{ch_perwtile,w_tile} <= s_config_data ;
 							if(~mode_1_1) img_h <= img_h + 1;
 						end
 					endcase
 
-					if (config_cnt >= 1) s_config_ready  <= 'd0;
-					else s_config_ready  <= 'd1;
+					if (config_cnt >= 1 && ~init_weight) s_config_ready  <= 'd0;
+					else if (config_cnt >= 1 && init_weight) begin
+						config_cnt <= 'd0;
+						s_config_ready <= 'd1;
+					end
+					else s_config_ready <= 'd1;
 
 				end
 

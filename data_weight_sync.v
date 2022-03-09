@@ -50,7 +50,6 @@ module act_weight_sync (
 	output          [`DATA_ACT_WIDTH-1 :0]              m_act_data_3            ,
 	output          [`DATA_ACT_WIDTH-1 :0]              m_act_data_4            ,
 
-	//用位宽转�?fifo,generate�?64�?
 	output          [`DATA_WEIGHT_WIDTH*256-1 :0]       m_weight_data           ,
 
 	output          reg       [2:0]                     m_weight_valid          ,
@@ -86,6 +85,7 @@ module act_weight_sync (
 	reg [23:0]  act_block_len;// = 56*56*256/4;
 	reg [11:0]  ch_group_num ;
 	reg         mode_1_1;
+	reg         init_weight;
 
 
 
@@ -327,7 +327,7 @@ module act_weight_sync (
 	always @ (*) begin
 		case(current_state)
 			CONFIG:begin
-				if (config_cnt > 5) next_state = GET_WEIGHT;
+				if (config_cnt > 5 && ~init_weight) next_state = GET_WEIGHT;
 				else next_state = CONFIG;
 			end
 
@@ -408,9 +408,10 @@ module act_weight_sync (
 				end
 
 				case (config_cnt)
-					0: begin 
-						{ch_group_num,ch_cycle_cnt} <= s_axis_synconfig_tdata[23:0] ;
-						mode_1_1 <= s_axis_synconfig_tdata[24] ;
+					0: begin
+						{ch_group_num,ch_cycle_cnt} <= s_axis_synconfig_tdata[23:0];
+						mode_1_1 <= s_axis_synconfig_tdata[24];
+						init_weight <= s_axis_synconfig_tdata[25];
 					end
 					1: begin
 						{img_h, img_w}   <= s_axis_synconfig_tdata[23:0] ;
@@ -422,8 +423,12 @@ module act_weight_sync (
 					5: total_len        <= s_axis_synconfig_tdata[31:0] ;
 				endcase
 
-				if (config_cnt >= 5) s_axis_synconfig_tready  <= 'd0;
-				else s_axis_synconfig_tready  <= 'd1;
+				if (config_cnt >= 5 && ~init_weight) s_axis_synconfig_tready  <= 'd0;
+				else if (config_cnt >= 5 && init_weight) begin
+					config_cnt <= 0;
+					s_axis_synconfig_tready <= 'd1;
+				end
+				else s_axis_synconfig_tready <= 'd1;
 			end
 
 			GET_WEIGHT:begin

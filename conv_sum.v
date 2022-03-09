@@ -245,7 +245,7 @@ module conv_sum(
 			end
 
 			default:begin
-				s_config_ready <= 1'b0 ; 
+				s_config_ready <= 1'b0 ;
 				count_clr <= 1'b0 ;
 				dout_cnt  <= 'd0 ;
 				rst_cnt   <= 'd0 ;

@@ -70,8 +70,8 @@ VCS: 专业仿真工具
 
 ### 1.3.1 PS 配置寄存器定义
 
-| 地址 |   位宽   | 说明 |
-|:----:|:--------:|:----|
+| 地址 |   位宽   | 说明                                                         |
+|:----:|:--------:|:-------------------------------------------------------------|
 |0x000 | [ 0:  0] | conf_33. Choose $3 \times 3$ convolution or $1 \times 1$ convolution.
 |      |          | 0 indicate $3 \times 3$ convolution.
 |      |          | 1 indicate $1 \times 1$ convolution.
@@ -95,15 +95,18 @@ VCS: 专业仿真工具
 |      |          | 1 indicate sampling on.
 |      | [ 7:  7] | bitintercept switch. Useless for now.
 |      | [16:  8] | img_h, which is also img_w
-|      | [17: 17] | finish.
-|      |          | 0 indicate configuration state not finish.
-|      |          | 1 indicate configuration state finish.
-|      | [18: 18] | reset.
-|      |          | 1 indicate reset.
-|      |          | 0 indicate not to reset.
-|      | [19: 19] | Output sink.
+|      | [17: 17] | Output sink.
 |      |          | 0 indicate DDR is output sink.
 |      |          | 1 indicate SDK is output sink.
+|      | [18: 18] | Initial weight.
+|      |          | 0 indicate it is calculate state.
+|      |          | 1 indicate it is initial weight state.
+|      | [19: 19] | finish.
+|      |          | 0 indicate configuration state not finish.
+|      |          | 1 indicate configuration state finish.
+|      | [20: 20] | reset.
+|      |          | 1 indicate reset.
+|      |          | 0 indicate not to reset.
 |0x020 | [11:  0] | input channel
 |      | [23: 12] | output channel
 |0x040 |          | Act write address. Only useful when act source is SDK.

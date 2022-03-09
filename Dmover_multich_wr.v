@@ -104,6 +104,7 @@ module Dmover_multich_wr (
 
 	reg [2:0]   c_state;
 	reg [2:0]   n_state;
+	reg         init_weight;
 
 	assign cnt_unit_wire = cnt_unit;
 	assign len_unit_wire = len_unit;
@@ -145,10 +146,10 @@ module Dmover_multich_wr (
 		else begin
 			case(c_state)
 				CONFIG: begin
-					if(config_cnt == 4 & ~output_sink) begin
+					if(config_cnt == 4 && ~output_sink && ~init_weight) begin
 						n_state = DMOVER_CONFIG;
 					end
-					else if (config_cnt == 4 & output_sink) begin
+					else if (config_cnt == 4 && output_sink && ~init_weight) begin
 						n_state = SDK_OUTPUT;
 					end
 					else begin
@@ -216,7 +217,7 @@ module Dmover_multich_wr (
 
 							if (s_axis_dmwconfig_tvalid & s_axis_dmwconfig_tready) begin
 								config_cnt  <= config_cnt + 1'b1;
-								{switch_sampling, output_sink, chout_perwtile, chout_group_perwram} <=
+								{init_weight, switch_sampling, output_sink, chout_perwtile, chout_group_perwram} <=
 									s_axis_dmwconfig_tdata;
 							end
 						end
@@ -261,6 +262,11 @@ module Dmover_multich_wr (
 							end
 						end
 					endcase
+
+					if (config_cnt == 4 && init_weight) begin
+						config_cnt <= 0;
+						s_axis_dmwconfig_tready <= 'd1;
+					end
 				end
 
 				DMOVER_CONFIG: begin
