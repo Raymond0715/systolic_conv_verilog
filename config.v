@@ -142,19 +142,23 @@ module ctrl (
 	// Output sink
 	reg         output_sink;
 
+	// Initialize weight
+	reg         init_weight;
+
 //Config data
-	wire[9:0]   config_finish_bus, config_ready_bus ;
-	reg [7:0]   para_cal_cnt ;
-	reg [3:0]   config_cnt;
-	reg [31:0]  W_LEN_TEMP;
-	reg [31:0]  A_LEN_TEMP;
-	reg [31:0]  WEI_DEPTH = `WEIGHT_DEPTH;
+	wire [9:0]   config_finish_bus, config_ready_bus ;
+	reg  [7:0]   para_cal_cnt ;
+	reg  [3:0]   config_cnt;
+	reg  [31:0]  W_LEN_TEMP;
+	reg  [31:0]  A_LEN_TEMP;
+	reg  [31:0]  WEI_DEPTH = `WEIGHT_DEPTH;
 
 	localparam CONFIG_SLAVE  = 0;
 	localparam CAL_PARAM     = 1;
 	localparam CONFIG_MASTER = 2;
 	localparam CALCULATE     = 3;
-	localparam FINISH        = 4;
+	localparam TRANSFER      = 4;
+	localparam FINISH        = 6;
 
 	reg [2:0] cs;
 	reg [2:0] ns;
@@ -184,13 +188,18 @@ module ctrl (
 					if (para_cal_cnt >= 'd120) ns = CONFIG_MASTER;
 					else ns = CAL_PARAM;
 
-				CONFIG_MASTER :
-					if (&config_finish_bus) ns = CALCULATE ;
+				CONFIG_MASTER:
+					if (~init_weight & (&config_finish_bus)) ns = CALCULATE;
+					else if (init_weight & (&config_finish_bus)) ns = TRANSFER;
 					else ns = CONFIG_MASTER;
 
-				CALCULATE  :
+				CALCULATE:
 					if (&config_ready_bus) ns = FINISH;
 					else  ns = CALCULATE ;
+
+				TRANSFER:
+					if (&config_ready_bus) ns = FINISH;
+					else ns = TRANSFER;
 
 				FINISH: ns = CONFIG_SLAVE ;
 
@@ -228,7 +237,8 @@ module ctrl (
 								switch_bitintercept <=  s_axis_config_tdata[7] ;
 								img_h               <=  s_axis_config_tdata[16:8] ;
 								img_w               <=  s_axis_config_tdata[16:8] ;
-								output_sink         <=  s_axis_config_tdata[19:19];
+								output_sink         <=  s_axis_config_tdata[17:17];
+								init_weight         <=  s_axis_config_tdata[18:18];
 							end
 							1: begin
 								i_ch                <=  s_axis_config_tdata[11: 0];
@@ -499,7 +509,7 @@ module ctrl (
 			2: m_axis_dmconfig_tdata <= act_waddr ;
 			3: m_axis_dmconfig_tdata <= r_btt  ;
 			4: m_axis_dmconfig_tdata <= act_raddr ;
-			5: m_axis_dmconfig_tdata <= {act_source, workmode,w_tile[7:0], act_line_len} ;
+			5: m_axis_dmconfig_tdata <= {init_weight, act_source, workmode, w_tile[7:0], act_line_len} ;
 			6: m_axis_dmconfig_tdata <= raddr_tile_offset ;
 			7: m_axis_dmconfig_tdata <= chout_group_perwram ;
 			default: m_axis_dmconfig_tdata <= 'd0;
@@ -534,7 +544,7 @@ module ctrl (
 
 	always @ (*) begin
 		case (cnt_wmconfig)
-			0: m_axis_wmconfig_tdata <= {weight_source, weight_rlen};
+			0: m_axis_wmconfig_tdata <= {init_weight, weight_source, weight_rlen};
 			1: m_axis_wmconfig_tdata <= weight_waddr  ;
 			2: m_axis_wmconfig_tdata <= weight_raddr  ;
 			3: m_axis_wmconfig_tdata <= weight_wlen    ;
@@ -570,7 +580,7 @@ module ctrl (
 
 	always @ (*) begin
 		case (cnt_dconfig)
-			0: m_axis_dconfig_tdata  <= {img_h,img_w};
+			0: m_axis_dconfig_tdata  <= {init_weight, img_h, img_w};
 			1: m_axis_dconfig_tdata  <= act_len[24:8]*o_ch  ;
 			default: m_axis_dconfig_tdata <= 'd0;
 		endcase
@@ -605,7 +615,7 @@ module ctrl (
 
 	always @ (*) begin
 		case (cnt_wconfig)
-			0: m_axis_wconfig_tdata <= config_cycle_cnt  ;
+			0: m_axis_wconfig_tdata <= {init_weight, config_cycle_cnt}  ;
 			default: m_axis_wconfig_tdata <= 'd0;
 		endcase
 	end
@@ -639,12 +649,12 @@ module ctrl (
 
 	always @ (*) begin
 		case (cnt_synconfig)
-			0: m_axis_synconfig_tdata <= {mode_1_1,chout_group_perwram, i_ch[13:2]};//before it is chgroup_cnt
-			1: m_axis_synconfig_tdata <= {img_h, img_w}  ;
-			2: m_axis_synconfig_tdata <= sync_weight_num  ;
-			3: m_axis_synconfig_tdata <= act_block_len  ;
-			4: m_axis_synconfig_tdata <= weight_switch_num  ;
-			5: m_axis_synconfig_tdata <= act_len[24:8]*o_ch  ;//[24:2]*O_CH[]
+			0: m_axis_synconfig_tdata <= {init_weight, mode_1_1,chout_group_perwram, i_ch[13:2]};
+			1: m_axis_synconfig_tdata <= {img_h, img_w};
+			2: m_axis_synconfig_tdata <= sync_weight_num;
+			3: m_axis_synconfig_tdata <= act_block_len;
+			4: m_axis_synconfig_tdata <= weight_switch_num;
+			5: m_axis_synconfig_tdata <= act_len[24:8]*o_ch;
 			default: m_axis_synconfig_tdata <= 'd0;
 		endcase
 	end
@@ -685,7 +695,7 @@ module ctrl (
 	end
 
 
-	// ro config
+	// reorder config
 	reg         config_finish_ro = 0 ;
 	reg [2:0]   cnt_roconfig     = 0 ;
 
@@ -712,7 +722,7 @@ module ctrl (
 
 	always @ (*) begin
 		case (cnt_roconfig)
-			0: m_axis_roconfig_tdata  <= {mode_1_1,img_h,img_w}  ;
+			0: m_axis_roconfig_tdata  <= {init_weight, mode_1_1,img_h,img_w}  ;
 			1: m_axis_roconfig_tdata  <= {chout_perwtile,w_tile}  ;
 			default: m_axis_roconfig_tdata <= 'd0;
 		endcase
@@ -747,7 +757,7 @@ module ctrl (
 	always @ (*) begin
 		case (cnt_ppconfig)
 			0: m_axis_ppconfig_tdata <=
-				{o_ch, relumode, switch_bias, switch_sampling, switch_relu, switch_bitintercept,
+				{init_weight, o_ch, relumode, switch_bias, switch_sampling, switch_relu, switch_bitintercept,
 				switch_rowfilter, mode_1_1, workmode};
 			1: m_axis_ppconfig_tdata <= {bias_source,img_h,img_w};
 			2: m_axis_ppconfig_tdata <= bias_waddr;
@@ -787,7 +797,7 @@ module ctrl (
 	always @ (*) begin
 		case (cnt_dmwconfig)
 			0: m_axis_dmwconfig_tdata <=
-				{switch_sampling, output_sink, chout_perwtile, chout_group_perwram} ;
+				{init_weight, switch_sampling, output_sink, chout_perwtile, chout_group_perwram} ;
 			1: m_axis_dmwconfig_tdata <= {w_tile, img_w, img_h};
 			2: m_axis_dmwconfig_tdata <= ddr_write_addr ;
 			3: m_axis_dmwconfig_tdata <= act_len;

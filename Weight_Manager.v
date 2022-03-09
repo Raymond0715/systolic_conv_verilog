@@ -86,6 +86,7 @@ module Weight_Manager (
 );
 
 	reg         weight_source;
+	reg         init_weight;
 
 	reg [3:0]   w_rsvd ='d0 ;
 	reg [3:0]   w_tag  ='d0 ;
@@ -167,8 +168,10 @@ module Weight_Manager (
 				end
 
 				W_data: begin
-					if ((wdata_cnt+1 >= pakage_len) & m_axis_weight_s2mm_tready & m_axis_weight_s2mm_tvalid)
+					if ((wdata_cnt+1 >= pakage_len) & m_axis_weight_s2mm_tready & m_axis_weight_s2mm_tvalid & ~init_weight)
 						ns = R_config ;
+					if ((wdata_cnt+1 >= pakage_len) & m_axis_weight_s2mm_tready & m_axis_weight_s2mm_tvalid & init_weight)
+						ns = IDLE ;
 					else if ((wdata_cnt[17:0]=='h3ffff)
 							& (m_axis_weight_s2mm_tready & m_axis_weight_s2mm_tvalid)) begin
 						ns = W_config ;
@@ -224,6 +227,7 @@ module Weight_Manager (
 							weight_len <= s_axis_wmconfig_tdata[24:0];
 							r_btt      <= {s_axis_wmconfig_tdata[24:0],1'b0};
 							weight_source <= s_axis_wmconfig_tdata[25];
+              init_weight <= s_axis_wmconfig_tdata[26];
 						end
 						1: begin
 							w_addr <= s_axis_wmconfig_tdata;
@@ -269,6 +273,7 @@ module Weight_Manager (
 
 					s_axis_weight_tready_ctrl <= 'd1;
 					if (m_axis_weight_s2mm_tready & m_axis_weight_s2mm_tvalid) wdata_cnt <= wdata_cnt + 1'b1;
+          if (init_weight) config_cnt <= 0;
 				end
 
 				R_config: begin

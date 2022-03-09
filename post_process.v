@@ -111,15 +111,14 @@ module post_process (
 	);
 
 	reg [3:0] config_cnt;
-	reg [15:0]wdata_cnt;
-	reg relumode, switch_bias, switch_sampling, switch_relu, switch_bitintercept,
+	reg [15:0] wdata_cnt;
+	reg        relumode, switch_bias, switch_sampling, switch_relu, switch_bitintercept,
 		switch_rowfilter, mode1_1, workmode;
 	reg [11:0]  img_h   ;
 	reg [11:0]  img_w   ;
 	//reg [15:0]  i_ch  ;
 	reg [15:0]  o_ch  ;
 	reg source;
-
 
 	reg [15:0] pix_cnt, line_cnt, total_cnt, chout_cnt;
 	reg [15:0] line_len, total_len, chout_len, chout_offset; 
@@ -160,6 +159,7 @@ module post_process (
 
 	reg [3:0] cs;
 	reg [3:0] ns;
+	reg       init_weight;
 
 	assign status_post = cs ;
 
@@ -186,7 +186,8 @@ module post_process (
 				end
 
 				W_bias: begin
-					if (s_axis_s2mm_sts_tvalid & s_axis_s2mm_sts_tready) ns = R_config ;////
+					if (s_axis_s2mm_sts_tvalid && s_axis_s2mm_sts_tready && ~init_weight) ns = R_config ;////
+					if (s_axis_s2mm_sts_tvalid && s_axis_s2mm_sts_tready && init_weight) ns = IDLE ;////
 					else ns = W_bias ;
 				end
 
@@ -209,7 +210,6 @@ module post_process (
 			endcase
 		end
 	end
-
 
 	always @(posedge clk ) begin
 		if (~rst_n)begin
@@ -239,7 +239,8 @@ module post_process (
 							{relumode, switch_bias, switch_sampling, switch_relu,
 								switch_bitintercept,switch_rowfilter, mode1_1, workmode } <=
 								s_axis_ppconfig_tdata[7:0];
-							o_ch <= s_axis_ppconfig_tdata[23:8] ;
+							o_ch <= s_axis_ppconfig_tdata[23:8];
+							init_weight <= s_axis_ppconfig_tdata[24:24];
 						end
 						1: {source,img_h,img_w} <= s_axis_ppconfig_tdata;
 						2: begin
@@ -254,7 +255,7 @@ module post_process (
 					endcase
 
 					if (config_cnt >= 5) s_axis_ppconfig_tready  <= 'd0;
-					else s_axis_ppconfig_tready  <= 'd1;
+					else s_axis_ppconfig_tready <= 'd1;
 
 				end
 
@@ -269,7 +270,8 @@ module post_process (
 					m_axis_s2mm_cmd_tvalid <= 'd0;
 					m_axis_s2mm_cmd_tdata  <= 'd0;
 					bias_rdy_ctrl <= 'd1;
-					if (m_axis_s2mm_tvalid & m_axis_s2mm_tready) wdata_cnt <= wdata_cnt + 1'b1 ;
+					if (m_axis_s2mm_tvalid && m_axis_s2mm_tready) wdata_cnt <= wdata_cnt + 1'b1;
+					if (init_weight) config_cnt <= 0;
 				end
 
 				R_config: begin

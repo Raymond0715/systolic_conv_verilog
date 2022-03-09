@@ -34,6 +34,7 @@ module act_mux (
 	reg [31:0] total_dout_cnt;
 
 	reg switch_wr=0, switch_rd=0, fifo_we_ping, fifo_we_pong, r_data_ready = 0;
+	reg init_weight;
 
 	localparam IDLE         = 1;
 	localparam DATACYCLE    = 2;
@@ -52,11 +53,11 @@ module act_mux (
 	always @ (*) begin
 		case(c_state)
 			IDLE: begin
-				n_state = (config_cnt==2) ? DATACYCLE:IDLE ;
+				n_state = (config_cnt==2 && ~init_weight) ? DATACYCLE:IDLE ;
 			end
 
 			DATACYCLE : begin
-				n_state = ((act_valid & act_ready)&(total_dout_cnt + 1 == total_len)) ? IDLE: DATACYCLE;
+				n_state = (act_valid && act_ready && total_dout_cnt + 1 == total_len) ? IDLE: DATACYCLE;
 			end
 
 			default: n_state = IDLE ;
@@ -72,10 +73,10 @@ module act_mux (
 				fifo_we_pong   <= 1'b0;
 				total_dout_cnt <= 'd0;
 
-				if (s_config_ready & s_config_valid) begin
+				if (s_config_ready && s_config_valid) begin
 					config_cnt <= config_cnt + 1'b1 ;
 					case (config_cnt)
-						0: {img_h,img_w} <= s_config_data ;
+						0: {init_weight, img_h, img_w} <= s_config_data ;
 						1: begin
 							s_config_ready <= 1'b0 ;
 							total_len  <= s_config_data ;
@@ -94,7 +95,7 @@ module act_mux (
 				config_cnt   <= 'd0  ;
 
 				if (switch_wr == `PING) begin
-					fifo_we_ping <= s_data_valid & s_data_ready;
+					fifo_we_ping <= s_data_valid && s_data_ready;
 					fifo_we_pong <= 0;
 					fifo_din_1 <= s_data[48+`DATA_ACT_WIDTH-1 : 48];
 					fifo_din_2 <= s_data[32+`DATA_ACT_WIDTH-1 : 32];
@@ -104,7 +105,7 @@ module act_mux (
 				end
 				else if (switch_wr == `PONG) begin
 					fifo_we_ping <= 0;
-					fifo_we_pong <= s_data_valid & s_data_ready;
+					fifo_we_pong <= s_data_valid && s_data_ready;
 					fifo_din_5 <= s_data[48+`DATA_ACT_WIDTH-1 : 48];
 					fifo_din_6 <= s_data[32+`DATA_ACT_WIDTH-1 : 32];
 					fifo_din_7 <= s_data[16+`DATA_ACT_WIDTH-1 : 16];
@@ -112,7 +113,7 @@ module act_mux (
 					cycle_offset   <= 0;
 				end
 
-				if(act_valid & act_ready)begin
+				if(act_valid && act_ready)begin
 					if (total_dout_cnt + 1 < total_len) begin
 						total_dout_cnt <= total_dout_cnt + 'd1 ;
 					end
@@ -127,7 +128,7 @@ module act_mux (
 
 	always @ (posedge clk) begin
 		if (~rst_n) switch_wr <= `PING;
-		else if (s_data_valid & s_data_ready) begin
+		else if (s_data_valid && s_data_ready) begin
 			pix <= (cycle_len-cycle_offset <= 4) ?
 				pix==img_w-1 ? 0 : pix + 1'b1
 				: pix;
@@ -139,9 +140,9 @@ module act_mux (
 	wire fifo_prog_full_ping, fifo_prog_full_pong;
 	wire fifo_valid_1, fifo_valid_5;
 
-	assign s_data_ready = (~fifo_prog_full_ping) & (~fifo_prog_full_pong) & r_data_ready;
-	assign fifo_rd_ping = act_ready & (~switch_rd) ;
-	assign fifo_rd_pong = act_ready & switch_rd;
+	assign s_data_ready = (~fifo_prog_full_ping) && (~fifo_prog_full_pong) & r_data_ready;
+	assign fifo_rd_ping = act_ready && (~switch_rd) ;
+	assign fifo_rd_pong = act_ready && switch_rd;
 
 	assign act_valid    = switch_rd ? fifo_valid_5 : fifo_valid_1;
 	assign act_data_1   = switch_rd ? fifo_dout[4] : fifo_dout[0];

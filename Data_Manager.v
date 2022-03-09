@@ -102,6 +102,7 @@ module ACT_Manager (
 	reg [11:0]  out_full_repeat_num ;
 	reg         workmode;
 	reg         act_source;
+	reg         init_weight;
 
 	reg [3:0]   w_rsvd ='d0 ;
 	reg [3:0]   w_tag  ='d0 ;
@@ -200,7 +201,7 @@ module ACT_Manager (
 		if (~rst_n) ns = IDLE ;
 		else begin
 			case (cs)
-				IDLE: if(config_cnt == 8)begin
+				IDLE: if(config_cnt == 8 & ~init_weight)begin
 					if (act_source == `DDR) ns = R_config;
 					else ns = W_config;
 				end
@@ -291,6 +292,7 @@ module ACT_Manager (
 						out_full_repeat_num <= s_axis_dmconfig_tdata[23:16] ;
 						workmode   <= s_axis_dmconfig_tdata[24];
 						act_source <= s_axis_dmconfig_tdata[25];
+            init_weight <= s_axis_dmconfig_tdata[26];
 					end
 					6: raddr_tile_offset <= s_axis_dmconfig_tdata[23:0] ;
 					7: act_repeat_num <= s_axis_dmconfig_tdata;
@@ -298,6 +300,8 @@ module ACT_Manager (
 
 				if (config_cnt >= 7) s_axis_dmconfig_tready  <= 'd0;
 				else s_axis_dmconfig_tready  <= 'd1;
+
+				if (config_cnt == 8 & init_weight) config_cnt <= 0;
 
 				//TEMP
 				pakage_len <= w_btt >> 4 ;

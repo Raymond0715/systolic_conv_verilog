@@ -1,23 +1,18 @@
-//`define SIM
+`define SIM
 `define FSDB_DUMP
 `define PRINT
 // Define `DEBUG` will enable ila in verilog design. Remember to avoid conflict
 // with ila in block design
 //`define DEBUG
-`define ILA
+//`define ILA
 //`define FSDB_DUMP_2D
 `define FRAME_NUM 1
 `define INIT_TRANS2SUM
 `define INIT_RO2DDRW
 //`define POST_DATAGEN
+//`define REORDER_DATAGEN
 
-`define SCENE1
-    //1: 56*56*256
-    //2: 28*28*512
-    //3: 224*224*64
-    //4: 1*1*4096
-    //5: 13*13*1024*256
-
+`define SCENE6
 
 `ifdef SCENE1
     `define IMG_H            56
@@ -109,3 +104,17 @@
     `define REORDER_LEN 13*13*256/64
 `endif
 
+
+`ifdef SCENE6
+    `define IMG_H            0
+    `define IMG_W            0
+    `define I_CH             0
+    `define O_CH             0
+
+    `define IMG_LEN  692224 // 208*208*16
+    `define IMG_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/yolo_l345/img_208_16_process_shift_sim.txt"
+
+    `define WEI_LEN  27904 // 9*16*64+9*32*64+(64+64)*2
+    `define WEI_DIR "/media/raymond/project/fpga/fpga_systolic_conv_sim/data/yolo_l345/bias_weight_l345_sim.txt"
+
+`endif
