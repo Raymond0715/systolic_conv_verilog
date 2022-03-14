@@ -379,6 +379,7 @@ module ACT_Manager (
 							act_ram_valid_pre1 <= 1;
 						end
 					end
+
 					else begin
 						act_raddr <= act_raddr + 1 ;
 						act_ram_valid_pre1 <= 1;

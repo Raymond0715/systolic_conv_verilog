@@ -210,6 +210,31 @@ module Top_PL # (
 		reg [31:0] ddr_write_addr = 32'h300_0000;
 	`endif
 
+	`ifdef SCENE2
+		reg [0:0]  workmode  = 0;
+		reg [0:0]  act_source = 1;
+		reg [0:0]  weight_bias_source = 1 ;
+		reg [0:0]  relumode  =1;
+		reg [0:0]  switch_relu =1 ;
+		reg [0:0]  switch_bias =1 ;
+		reg [0:0]  switch_sampling =0 ;
+		reg [0:0]  switch_bitintercept=1 ;
+		reg [8:0]  img_w=28;
+		reg        output_ps = 0;
+		reg        init_weight = 0;
+		reg [11:0] i_ch=512;
+		reg [11:0] o_ch=512;
+		reg [31:0] act_waddr = 32'h200_0000;
+		reg [31:0] act_raddr = 32'h200_0000;
+		reg [31:0] weight_waddr = 32'h000_0000;
+		reg [31:0] weight_raddr = 32'h000_0000;
+		reg [31:0] weight_wlen  = 512*512*9;
+		reg [31:0] bias_waddr = 32'h100_0000;
+		reg [31:0] bias_raddr = 32'h100_0000;
+		reg [31:0] bias_wlen = 512;
+		reg [31:0] ddr_write_addr = 32'h300_0000;
+	`endif
+
 	`ifdef SCENE5
 		reg [0:0]  workmode = 1;
 		reg [0:0]  act_source = 1;
@@ -247,14 +272,39 @@ module Top_PL # (
 		reg        init_weight = 1;
 		reg [11:0] i_ch = 0;
 		reg [11:0] o_ch = 0;
-		reg [31:0] act_waddr = 32'h0;
-		reg [31:0] act_raddr = 32'h0;
-		reg [31:0] weight_waddr = 32'h100_0000;
-		reg [31:0] weight_raddr = 32'h100_0000;
+		reg [31:0] act_waddr = 32'h200_0000;
+		reg [31:0] act_raddr = 32'h200_0000;
+		reg [31:0] weight_waddr = 32'h000_0000;
+		reg [31:0] weight_raddr = 32'h000_0000;
 		reg [31:0] weight_wlen  = 27648;
-		reg [31:0] bias_waddr = 32'h200_0000;
-		reg [31:0] bias_raddr = 32'h200_0000;
+		reg [31:0] bias_waddr = 32'h100_0000;
+		reg [31:0] bias_raddr = 32'h100_0000;
 		reg [31:0] bias_wlen = 128;
+		reg [31:0] ddr_write_addr = 32'h300_0000;
+	`endif
+
+	`ifdef SCENE7
+		reg        workmode = 0;
+		reg        act_source = 1;
+		reg        weight_bias_source = 1;
+		reg        relumode = 1;
+		reg        switch_relu = 0;
+		reg        switch_bias = 0;
+		reg        switch_sampling = 0;
+		reg        switch_bitintercept = 0;
+		reg [8:0]  img_w = 0;
+		reg        output_ps = 0;
+		reg        init_weight = 1;
+		reg [11:0] i_ch = 0;
+		reg [11:0] o_ch = 0;
+		reg [31:0] act_waddr = 32'h200_0000;
+		reg [31:0] act_raddr = 32'h200_0000;
+		reg [31:0] weight_waddr = 32'h000_0000;
+		reg [31:0] weight_raddr = 32'h000_0000;
+		reg [31:0] weight_wlen  = 1179648;
+		reg [31:0] bias_waddr = 32'h100_0000;
+		reg [31:0] bias_raddr = 32'h100_0000;
+		reg [31:0] bias_wlen = 512;
 		reg [31:0] ddr_write_addr = 32'h300_0000;
 	`endif
 
@@ -299,12 +349,37 @@ module Top_PL # (
 			init_weight         <= 0;
 			i_ch                <= 16;
 			o_ch                <= 64;
-			act_raddr           <= 32'h0;
-			act_waddr           <= 32'h0;
-			weight_raddr        <= 32'h100_0000;
+			act_raddr           <= 32'h200_0000;
+			act_waddr           <= 32'h200_0000;
+			weight_raddr        <= 32'h000_0000;
 			weight_wlen         <= 9216;
-			bias_raddr          <= 32'h200_0000;
+			bias_raddr          <= 32'h100_0000;
 			bias_wlen           <= 64;
+			ddr_write_addr      <= 32'h300_0000;
+		`endif
+
+		`ifdef SCENE7
+			$display("[SIM][Top_PL.v] One cycle.");
+
+			workmode            <= 0;
+			act_source          <= 1;
+			weight_bias_source  <= 0;
+			relumode            <= 1;
+			switch_relu         <= 1;
+			switch_bias         <= 1;
+			switch_sampling     <= 1 ;
+			switch_bitintercept <= 0;
+			img_w               <= 13;
+			output_ps           <= 0;
+			init_weight         <= 0;
+			i_ch                <= 256;
+			o_ch                <= 512;
+			act_raddr           <= 32'h200_0000;
+			act_waddr           <= 32'h200_0000;
+			weight_raddr        <= 32'h000_0000;
+			weight_wlen         <= 1179648;
+			bias_raddr          <= 32'h100_0000;
+			bias_wlen           <= 512;
 			ddr_write_addr      <= 32'h300_0000;
 		`endif
 

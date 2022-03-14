@@ -326,6 +326,7 @@ module ctrl (
 								s_axis_divisor_tvalid <= 'd1;
 								s_axis_dividend_tvalid <= 'd1;
 							end
+
 							else begin
 								a_tile <= 1 ; // cal w_tile
 
@@ -341,8 +342,10 @@ module ctrl (
 						end
 
 						5: begin
+							// Weight Tiling
 							if (workmode==1) begin
-								//cal act_repeat num(chout_group_perwram)
+								// cal act_repeat num(chout_group_perwram)
+								// 1 * 1 convolution
 								if (mode_1_1) begin
 									if (`WEIGHT_RAMf_WIDTH > chout_group_perwram * (i_ch>>1)) begin
 										chout_group_perwram <= chout_group_perwram * 2;
@@ -351,8 +354,11 @@ module ctrl (
 										para_cal_cnt <= para_cal_cnt + 1 ;
 									end
 								end
+
+								// 3 * 3 convolution
 								else begin
-									if (WEI_DEPTH > o_ch*576) begin
+									//if (WEI_DEPTH > o_ch*576) begin
+									if (WEI_DEPTH > i_ch*576) begin
 										chout_group_perwram <= chout_group_perwram * 2;
 										WEI_DEPTH <= WEI_DEPTH >> 1;
 									end
@@ -361,9 +367,12 @@ module ctrl (
 									end
 								end
 							end
+
+							// Activation Tiling
 							else begin
 								para_cal_cnt <= para_cal_cnt + 1 ;
 							end
+
 						end
 
 						5+`DIV_LANTANCY:begin
