@@ -597,7 +597,7 @@ module act_weight_sync (
 							end
 							else begin
 								//重启权重，由于�??一组权重已乒乓，从�?二组权重读起，即-1+9=8
-								ram_rd_addr  <= ch_cycle_cnt*9 * group_cycle - 1 ; 
+								ram_rd_addr  <= ch_cycle_cnt*9 * group_cycle - 1 ;
 								group_cycle  <= group_cycle + 1 ;
 							end
 						end
@@ -706,9 +706,9 @@ module act_weight_sync (
 							end
 
 							case (weight_cnt)
-								0: weight_valid_pre <= 3'b001; 
-								3: weight_valid_pre <= 3'b010; 
-								6: weight_valid_pre <= 3'b100; 
+								0: weight_valid_pre <= 3'b001;
+								3: weight_valid_pre <= 3'b010;
+								6: weight_valid_pre <= 3'b100;
 							endcase
 						end
 						else if (ch_cycle == 0) begin

@@ -1,3 +1,4 @@
+# HARDWARE
 # 1 烂笔头
 
 VCS: 专业仿真工具
@@ -238,10 +239,126 @@ conv_group_63 ──┬── conv_33_1 ──┬── convolution 1
 ```
 
 
+## 2.5 Pseudocode
+
+### 2.5.1 Activation data schedule
+
+下述所示, 为权重分块模式下输入数据调度伪代码
+```python
+# Weight Tiling
+# index: full_repeat_cnt
+# range: out_full_repeat_num
+for w_tile
+  for img_h
+
+    # index: dout_repeat_cnt
+    # range: act_repeat_num
+    # `64` represent parallelism degree
+    for w_tile_o_ch / 64
+
+      # index: act_raddr
+      # range: act_line_len
+      # `4` represent input parallelism degree
+      for img_ch / 4; for img_w
+          act_raddr++
+          act_out_1
+          act_out_2
+          act_out_3
+          act_out_4
+
+      act_raddr = act_offset
+
+    # act_line_len =  raddr_per_line = 0x1a0
+    act_offset += raddr_per_line
+
+  act_offset = 0
+```
+
+### 2.5.2 PE cluster schedule
+
+简述 PE 阵列计算方法. 其中, 对权重分块做如下说明;
+
+- DDR 位宽为 128 bits.
+
+- 在一组 128 bits 中储存 BUS128_DATA_WEIGHT_NUM 个位宽为 DATA_WEIGHT_WIDTH bits 的数据.
+
+- DDR 中一个地址存储一个 byte 的数据, 即相邻两组 128 bits 的数据, 地址变化为 0x10.
+
+- weight_size_ddr, index_weight_ddr, TILE_WEIGHT_DDR_SIZE 均为 以 128 bits 为单位的索引，即当 weight_size_ddr + 1 时，对应 DDR 中地址加 0x10.
+
+- weight_tile_ddr_size: 每个分块 (tiling) 所需的以 128 bits 为单位的 DDR 存储空间. 计算方式为剩余需要处理的权重个数和一个分块 (tiling) 所能容纳的数据个数的最小值.
+
+- weight_size_ddr: 初始化为以 128 bits 为单位的, 一个 tiling weight 对应的片上所需存储空间. 每完成一个分块 (tiling) 的计算后, 减去分块消耗的 weight 数据 (即得到剩余未处理的 weight 数据个数). 需要注意的是, 由于在当前设计中 weight 的基地址永远是0. 所以用 `weight_size_ddr - index_weight_ddr` 的方式代替上述计算. 当基地址不为 0 时, 这里要有优化.
+
+- index_weight_ddr: 每个 weight 分块读取时的基地址, 以 128 bits 为单位.
+
+下述所示, 为 PE 阵列计算调度伪代码.
+```python
+# 完整权重数据和激活值数据的分块个数, 以定点数 (浮点数) 个数为单位.
+OYT = ceil(input_size / (double)TILE_ACT_SIZE);
+OFT = ceil(kernel_size / (double)TILE_WEIGHT_SIZE);
+
+# 每个分块中, 需要按输入通道复用算子的次数.
+IN_F = nInputPlane / IN_PARAL;
+
+# 加载分块 weight (tiling_weight) 数据的循环
+for oft = 1: OFT
+  UpdateWeight           # Update weight for next tile. Load from DDR.
+  ResetAct               # Repeat activation in tile.
+
+  # 加载分块 act (tiling_act) 数据的循环
+  for oyt = 1: OYT
+    ResetWeight         # Repeat weight in tile
+    UpdateAct           # Update activation for next tile. Load from DDR.
+
+    # 每个 tiling_act 中包含激活值行数的循环.
+    for oy = 1: OY
+      ResetWeight       # Repeat weight in tile
+      UpdateAct         # Update activation in row
+
+      # 每个 tiling_weight 中输出通道的循环.
+      for of = 1: OF
+        UpdateWeight    # Update weight in output channels
+        ResetAct        # Repeat activation data in tile
+
+        # 每个分块中输入通道的循环.
+        for in_f = 1: IN_F
+          UpdateWeight  # Update weight in input channels
+          UpdateAct     # Update activation in input channels
+          Calculation   # 64*4*3*3 PE cluster
+```
+
+
+### 2.5.3 Output data schedule
+
+下述所示, 为输出数据调度伪代码
+```python
+# row_tile_num * row_in_tile = total_row_num
+for row_tile_num
+
+  # output_ch_tile_num * output_ch_in_tile = total_output_ch_num
+  for output_ch_tile_num                       # --> `total_cnt` in verilog
+
+    for row_in_tile                            # --> `line_cnt` in verilog
+
+      # `output_pe_paral` represents output parallelism degree of PE.
+      for output_ch_in_tile / output_pe_paral
+        for column
+          # - Output of PE cluster will be stored in x FIFO at once.
+          # - In verilog, there are 8 fifo, which data width is 128 bits.
+          # - At same time, PE cluster output bandwidth is 64 output channels,
+          #   which data width is 16 bits.
+          StorePixel2Fifo1
+          StorePixel2Fifo2
+          ...
+          StorePixel2Fifox
+```
+
+
 # 3 SDK 读 SD 卡编译标识符
 
 REMEMBER to set `Software Platfoem Inferred Flags` as
-```
+```sh
 -Wl,--start-group,-lxilffs,-lxil,-lgcc,-lc,--end-group
 ```
 
@@ -251,16 +368,14 @@ REMEMBER to set `Software Platfoem Inferred Flags` as
 常用命令:
 
 - Command to convert raw video format
-
   ```sh
   $ ffmpeg -i test.webm -c:v rawvideo -pix_fmt yuyv422 test.yuv
   ```
 
 - Command for compiling
-
   ```sh
   $ CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ cmake -G"Eclipse CDT4 - Unix Makefiles" -DCMAKE_ECLIPSE_EXECUTABLE=${XILINX_SDX}/eclipse/lnx64.o/eclipse ../src
-  
+
   # deprecate
   $ CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ \
     cmake -G"Eclipse CDT4 - Unix Makefiles" -DCMAKE_ECLIPSE_EXECUTABLE=${XILINX_SDX}/eclipse/lnx64.o/eclipse \
@@ -268,76 +383,71 @@ REMEMBER to set `Software Platfoem Inferred Flags` as
   ```
 
 - Command for GStreamer
-
   ```sh
   # src: YUYV file
   $ gst-launch-1.0 filesrc location=/media/test.yuv \
   ! rawvideoparse width=1920 height=1080 format=GST_VIDEO_FORMAT_YUY2 \
   ! queue ! queue ! capsfilter ! fpsdisplaysink
-  
+
   # src: jpg image
   $ gst-launch-1.0 filesrc location=./test.jpg ! jpegdec ! imagefreeze ! fpsdisplaysink
-  
+
   # src: video
   # success
   $ startx /usr/bin/gst-launch-1.0 v4l2src device="/dev/video2" ! \
   video/x-raw,width=640,height=360,format=YUY2,framerate=30/1 ! \
   videoconvert ! fpsdisplaysink sync=false
-  
+
   # fail
   $ gst-launch-1.0 -v v4l2src device="/dev/video2" \
   ! video/x-raw,width=640,height=480,format=BGR,framerate=30/1 \
   ! fpsdisplaysink
-  
+
   # fail
   $ gst-launch-1.0 v4l2src ! image/jpeg, width=1920, height=1080, framerate=30/1 ! \
   jpegdec ! omxh264enc control-rate=variable target-bitrate=1000000 ! h264parse ! \
   fpsdisplaysink
-  
+
   # src: test src
   $ gst-launch-1.0 videotestsrc pattern=snow \
   ! video/x-raw,width=1920,height=1080 ! fpsdisplaysink
-  
+
   $ gst-launch-1.0 videotestsrc \
   ! video/x-raw,width=1920,height=1080,framerate=60/1 ! fpsdisplaysink
   ```
-  
-- Check memory
 
+- Check memory
   ```sh
   $ ps -o pid,user,%mem,command ax | grep test
   ```
 
 - Run application
-
   ```sh
   $ startx ./test_gst
   ```
 
 - Test led with petalinux
-
   ```sh
   # Select the device-tree
   $ cd $TRD_HOME/petalinux/bsp/project-spec/meta-user/recipes-bsp/device-tree/files
   $ cp zcu102-base-test-led.dtsi system-user.dtsi
-  
+
   # import the hdf file generated by Vivado and build
   $ cd $TRD_HOME/petalinux/bsp
   $ petalinux-config \
   --get-hw-description=/media/project/test/fpga/test_dma/test_dma.sdk \
   --silentconfig
   $ petalinux-build
-  
+
   # Create a boot image.
   $ cd $TRD_HOME/petalinux/bsp/images/linux
   $ petalinux-package --boot --bif=../../project-spec/boot/dm6.bif --force
-  
+
   # Copy the generated boot image and Linux image to the SD card directory.
   $ cp BOOT.BIN image.ub $TRD_HOME/sd_card/test_led
   ```
-  
-- petalinux configure
 
+- petalinux configure
   ```sh
   $ petalinux-config -c kernel
   $ petalinux-config -c rootfs
@@ -345,15 +455,11 @@ REMEMBER to set `Software Platfoem Inferred Flags` as
   ```
 
 - petalinux project
-
   ```sh
   # Create new project
   $ petalinux-create --type project --template zynqMP --name dma_test
-  
+
   # For error "Failed to open PetaLinux lib: librdi_commonxillic.so"
   $ echo "/opt/Xilinx/petalinux/tools/lib" > /etc/ld.so.conf.d/petalinux.so.conf
   $ ldconfig
   ```
-
-
-

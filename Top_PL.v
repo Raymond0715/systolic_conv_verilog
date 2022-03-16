@@ -308,6 +308,31 @@ module Top_PL # (
 		reg [31:0] ddr_write_addr = 32'h300_0000;
 	`endif
 
+	`ifdef SCENE8
+		reg        workmode = 0;
+		reg        act_source = 1;
+		reg        weight_bias_source = 1;
+		reg        relumode = 1;
+		reg        switch_relu = 1;
+		reg        switch_bias = 1;
+		reg        switch_sampling = 0;
+		reg        switch_bitintercept = 0;
+		reg [8:0]  img_w = 13;
+		reg        output_ps = 0;
+		reg        init_weight = 0;
+		reg [11:0] i_ch = 256;
+		reg [11:0] o_ch = 512;
+		reg [31:0] act_waddr = 32'h200_0000;
+		reg [31:0] act_raddr = 32'h200_0000;
+		reg [31:0] weight_waddr = 32'h000_0000;
+		reg [31:0] weight_raddr = 32'h000_0000;
+		reg [31:0] weight_wlen  = 1179648;
+		reg [31:0] bias_waddr = 32'h100_0000;
+		reg [31:0] bias_raddr = 32'h100_0000;
+		reg [31:0] bias_wlen = 512;
+		reg [31:0] ddr_write_addr = 32'h300_0000;
+	`endif
+
 	reg [31:0] s_axis_config_tdata_sim;
 	reg s_axis_config_tvalid_sim = 0;
 
@@ -367,7 +392,7 @@ module Top_PL # (
 			relumode            <= 1;
 			switch_relu         <= 1;
 			switch_bias         <= 1;
-			switch_sampling     <= 1 ;
+			switch_sampling     <= 0 ;
 			switch_bitintercept <= 0;
 			img_w               <= 13;
 			output_ps           <= 0;
@@ -381,6 +406,31 @@ module Top_PL # (
 			bias_raddr          <= 32'h100_0000;
 			bias_wlen           <= 512;
 			ddr_write_addr      <= 32'h300_0000;
+		`endif
+
+		`ifdef SCENE8
+			$display("[SIM][Top_PL.v] One cycle.");
+
+			workmode            <= 0;
+			act_source          <= 0;
+			weight_bias_source  <= 0;
+			relumode            <= 1;
+			switch_relu         <= 1;
+			switch_bias         <= 1;
+			switch_sampling     <= 0 ;
+			switch_bitintercept <= 0;
+			img_w               <= 13;
+			output_ps           <= 0;
+			init_weight         <= 0;
+			i_ch                <= 256;
+			o_ch                <= 512;
+			act_raddr           <= 32'h200_0000;
+			act_waddr           <= 32'h200_0000;
+			weight_raddr        <= 32'h000_0000;
+			weight_wlen         <= 1179648;
+			bias_raddr          <= 32'h100_0000;
+			bias_wlen           <= 512;
+			ddr_write_addr      <= 32'h400_0000;
 		`endif
 
 		wait (s_axis_config_tready);
@@ -903,9 +953,9 @@ module Top_PL # (
 			.i_start              (1'b1                 ),
 
 			.O_chan_cha1_ph_tdata (m_axis_rosim_tdata  ),
-			.O_chan_ph_tvalid     ( ),
+			.O_chan_ph_tvalid     (sum_valid),
 			.O_chan_ph_tlast      ( ),
-			.O_chan_ph_tready     (sum_valid)
+			.O_chan_ph_tready     (reorder_ready)
 		);
 
 	`endif
@@ -916,8 +966,9 @@ module Top_PL # (
 
 	`ifdef REORDER_DATAGEN
 		.sum_valid        (sum_valid      ),
-		.sum_data         ({sum_data[64*`DATA_INTER_WIDTH-1:56*`DATA_INTER_WIDTH],
-			m_axis_rosim_tdata[56*`DATA_INTER_WIDTH-1:0]}),
+		//.sum_data         ({sum_data[64*`DATA_INTER_WIDTH-1:56*`DATA_INTER_WIDTH],
+			//m_axis_rosim_tdata[56*`DATA_INTER_WIDTH-1:0]}),
+		.sum_data         (m_axis_rosim_tdata),
 		//.sum_data         (sum_data     ),
 		.ro_busy          (ro_busy      ),
 	`else

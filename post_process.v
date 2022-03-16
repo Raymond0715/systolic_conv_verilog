@@ -187,7 +187,7 @@ module post_process (
 
 				W_bias: begin
 					if (s_axis_s2mm_sts_tvalid && s_axis_s2mm_sts_tready && ~init_weight) ns = R_config ;////
-					if (s_axis_s2mm_sts_tvalid && s_axis_s2mm_sts_tready && init_weight) ns = IDLE ;////
+					else if (s_axis_s2mm_sts_tvalid && s_axis_s2mm_sts_tready && init_weight) ns = IDLE ;////
 					else ns = W_bias ;
 				end
 

@@ -15,6 +15,8 @@
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
+//      Take 56 * 56 * 256 as example.
+//
 //      Mode0: full weight  Mode1: full act
 //
 //      In mode0, each sum_din cycle as :
